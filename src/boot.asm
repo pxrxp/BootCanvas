@@ -1,22 +1,70 @@
 [org 0x7c00]
 
-extern seg_stack_setup_msg
-extern print_string
-
 start:
-        xor ax, ax            ; ax = 0
-        mov ds, ax            ; Clear segment registers using ax
-        mov es, ax
-        mov ss, ax
-        mov sp, 0x8888        ; Set Stack Pointer to allow calling functions
-                              ; Because, function call stores return address on the stack
-                              ; 0x8888 - 0x7c00 - 512 = 2696 bytes for stack, arbitrarily chosen.
-                               
-        mov si, seg_stack_setup_msg
+        ; BIOS only loads sector 1 to 0x7c00
+        ; We'll use other sectors to store the kernel.
+        ; So we'll later need to use BIOS interrupts to do so.
+         
+        mov [boot_drive], dl      ; BIOS passes boot drive number in dl
+
+        xor ax, ax                ; ax = 0
+        mov ds, ax                ; Clear data segment register using ax
+        mov es, ax                ; Clear extra segment register using ax
+        mov ss, ax                ; Clear stack segment register using ax
+        mov sp, 0x8000            ; Set stack pointer (needed for function calls)
+                                  ; When function called, return address stored on stack
+
+        mov si, msg_init
         call print_string
 
-        jmp $                 ; Infinite loop
+        mov al, 1                 ; Read one sector
+        mov ch, 0                 ; of cylinder 0
+        mov cl, 2                 ; starting at sector 2
+        mov dh, 0                 ; of head 0
+        mov dl, [boot_drive]      ; of boot_drive
+        mov ah, 0x02              ; Denotes function to read sectors
+        mov bx, 0x1000            ; ES:BX = address to load sector 2 into
+        int 0x13                  ; BIOS interrupt (disk)
+        jc disk_error             ; Jump if Carry flag set (error) 
+        mov si, msg_load_success
+        call print_string
+        jmp 0x1000                ; Jump to memory sector 2 successfully loaded into
 
+        jmp $                     ; Infinite loop
+
+
+;================================================================================================
+
+
+disk_error:
+        mov si, msg_error
+        call print_string
+        jmp $
+
+
+print_string:
+        mov ah, 0x0e
+.repeat:
+        lodsb                 ; 1 byte [si]->al
+        cmp al, 0             ; al == \0 ?
+        je .done              ; Yes => End Loop
+        int 0x10              ; No  => BIOS interrupt
+        jmp .repeat           ;        Loop back
+.done:
+        ret
+
+
+;================================================================================================
+
+; 13=\r, 10=\n, 0=\0 (null terminated strings)
+boot_drive db 0x00
+msg_init db 'Cleared segment registers and setup stack.', 13, 10, 0
+msg_load_start db 'Attempting to load Sector 2...', 13, 10, 0
+msg_load_success db 'Load successful. Jumping to kernel...', 13, 10, 0
+msg_error db 'DISK READ ERROR!', 13, 10, 0
+
+;================================================================================================
+ 
 
 ; Bootloader = 512 bytes, Signature i.e. AA55 = 2 bytes
 ; Pad remaining bytes with 0
