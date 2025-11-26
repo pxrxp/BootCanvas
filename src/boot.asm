@@ -1,11 +1,17 @@
 [org 0x7c00]
 
-; Infinite loop
 start:
+        xor ax, ax            ; ax = 0
+        mov ds, ax            ; Clear segment registers using ax
+        mov es, ax
+        mov ss, ax
+        mov sp, 0x8888        ; Set Stack Pointer to allow calling functions
+                              ; 0x8888-0x7c00-512 = 2696 bytes for stack, arbitrarily chosen.
+        
         mov si, msg_hello
         call print_string
         
-        jmp $
+        jmp $                 ; Infinite loop
 
 print_string:
         mov ah, 0x0e
