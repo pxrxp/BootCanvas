@@ -7,12 +7,22 @@ start:
         mov ss, ax
         mov sp, 0x8888        ; Set Stack Pointer to allow calling functions
                               ; 0x8888-0x7c00-512 = 2696 bytes for stack, arbitrarily chosen.
-        
-        mov si, msg_hello
+                               
+        mov si, seg_stack_setup_msg
         call print_string
+
+; Real mode uses segment:offset addressing
+; Actual address = segment * 0x10 + offset e.g. 0x1230:0x000F = 0x1230F
+; Max. memory limit = 0xFFFF:0xFFFF = 0x10FFFF = 1.12Mb
+; Any program can access any memory; no safety.
+;
+; Switching to protected mode...
         
         jmp $                 ; Infinite loop
 
+
+; ---------------------------------------------------------------------------------------------
+ 
 print_string:
         mov ah, 0x0e
 .repeat:
@@ -24,10 +34,16 @@ print_string:
 .done:
         ret
 
+; ---------------------------------------------------------------------------------------------
+ 
 ; 13 = \r
 ; 10 = \n
 ;  0 = \0
-msg_hello db 'Hello World', 13, 10, 0
+
+seg_stack_setup_msg db "Segment registers cleared", 13, 10, "Stack setup", 13, 10, 0
+
+; ---------------------------------------------------------------------------------------------
+
 
 ; Bootloader = 512 bytes
 ; Signature i.e. AA55 = 2 bytes
