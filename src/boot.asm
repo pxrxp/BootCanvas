@@ -17,27 +17,23 @@ start:
         mov si, msg_init
         call print_string
 
-        mov al, 1                 ; Read one sector
-        mov ch, 0                 ; of cylinder 0
-        mov cl, 2                 ; starting at sector 2
-        mov dh, 0                 ; of head 0
-        mov dl, [boot_drive]      ; of boot_drive
-        mov ah, 0x02              ; Denotes function to read sectors
-        mov bx, 0x1000            ; ES:BX = address to load sector 2 into
-        int 0x13                  ; BIOS interrupt (disk)
-        jc disk_error             ; Jump if Carry flag set (error) 
+        mov si, dap
+        mov dl, [boot_drive]
+        mov ah, 0x42
+        int 0x13
+        jc disk_error
         mov si, msg_load_success
         call print_string
-        jmp 0x1000                ; Jump to memory sector 2 successfully loaded into
+        jmp 0x0000:0x1000         ; Jump to memory sector 2 successfully loaded into
 
         jmp $                     ; Infinite loop
 
 
 ;================================================================================================
-
+ 
 
 disk_error:
-        mov si, msg_error
+       mov si, msg_error
         call print_string
         jmp $
 
@@ -45,11 +41,11 @@ disk_error:
 print_string:
         mov ah, 0x0e
 .repeat:
-        lodsb                 ; 1 byte [si]->al
-        cmp al, 0             ; al == \0 ?
-        je .done              ; Yes => End Loop
-        int 0x10              ; No  => BIOS interrupt
-        jmp .repeat           ;        Loop back
+        lodsb                     ; 1 byte [si]->al
+        cmp al, 0                 ; al == \0 ?
+        je .done                  ; Yes => End Loop
+        int 0x10                  ; No  => BIOS interrupt
+        jmp .repeat               ;        Loop back
 .done:
         ret
 
@@ -64,6 +60,15 @@ msg_load_success db 'Load successful. Jumping to kernel...', 13, 10, 0
 msg_error db 'DISK READ ERROR!', 13, 10, 0
 
 ;================================================================================================
+ 
+align 16  
+dap:                              ; disk address packet (given to bios)
+        db 16                     ; size of packet
+        db 0                      ; reserved
+        dw 9                      ; number of sectors to read
+        dw 0x1000                 ; offset (0x1000)
+        dw 0                      ; segment (0x0000) => Destination of read = 0x0000:0x1000 
+        dq 1                      ; LBA start (1 = first sector after boot sector)
  
 
 ; Bootloader = 512 bytes, Signature i.e. AA55 = 2 bytes

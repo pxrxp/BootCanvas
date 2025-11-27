@@ -62,3 +62,56 @@
 ; needed for switching between kernel and user space to perform
 ; system services (printing to console, saving file...).
 
+section .data 
+
+global gdtr
+global GDT_CODE_SEL
+global GDT_DATA_SEL
+
+struc gdt_entry_struct
+	limit_low:   resb 2
+	base_low:    resb 2
+	base_middle: resb 1
+	access:      resb 1
+	flags_limit: resb 1 ; flags = G|D|L|Reserved, limit_high (L for long mode = 64 bit)
+	base_high:   resb 1
+endstruc
+
+gdt_start:
+    ; Null Descriptor: Base=0, Limit=0, Access=0.
+    istruc gdt_entry_struct
+        at limit_low,   dw 0
+        at base_low,    dw 0
+        at base_middle, db 0
+        at access,      db 0
+        at flags_limit, db 0
+        at base_high,   db 0
+    iend
+gdt_code:
+    ; Code Segment: Base=0, Limit=4GB, Access=Executable/Readable.
+    istruc gdt_entry_struct
+        at limit_low,   dw 0xFFFF
+        at base_low,    dw 0
+        at base_middle, db 0
+        at access,      db 0b10011010
+        at flags_limit, db 0b11001111
+        at base_high,   db 0
+    iend
+gdt_data:
+    ; Data Segment: Base=0, Limit=4GB, Access=Writable/Readable.
+    istruc gdt_entry_struct
+        at limit_low,   dw 0xFFFF
+        at base_low,    dw 0
+        at base_middle, db 0
+        at access,      db 0b10010010
+        at flags_limit, db 0b11001111
+        at base_high,   db 0
+    iend
+gdt_end:
+
+gdtr:
+    dw gdt_end - gdt_start - 1
+    dd gdt_start
+
+GDT_CODE_SEL equ gdt_code - gdt_start
+GDT_DATA_SEL equ gdt_data - gdt_start
