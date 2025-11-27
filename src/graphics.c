@@ -1,5 +1,18 @@
 #include "graphics.h"
 
-void put_pixel(int x, int y, uint8_t r, uint8_t g, uint8_t b) {
+void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height, uint32_t bpp, uint32_t pitch) {
+  g_framebuffer = (uint32_t*) framebuffer;
+  g_width = width;
+  g_height = height;
+  g_bpp = bpp;
+  g_pitch = pitch;
+}
 
+void put_pixel(int x, int y, uint8_t r, uint8_t g, uint8_t b) {
+  if (x < 0 || x >= g_width || y < 0 || y >= g_height) return;
+
+  uint32_t offset = y * g_pitch + x * (g_bpp / 8);
+  uint32_t color = (r << 16) | (g << 8) | b;
+
+  *(uint32_t*)(g_framebuffer + offset) = color;
 }

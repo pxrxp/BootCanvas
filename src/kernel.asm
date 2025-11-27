@@ -17,13 +17,13 @@ kstart16:
     mov es, ax
 
     mov ax, 0x4F01                ; VESA Get Mode Info
-    mov cx, 0x117                 ; mode 1024x768 24-bit
+    mov cx, 0x118                 ; mode 1024x768 24-bit
     lea di, [vesa_info]           ; store at vesa_info
     int 0x10
     jc fail
 
     mov ax, 0x4F02
-    mov bx, 0x4117                ; 0x118 but linear framebuffer
+    mov bx, 0x4118                ; 0x118 but linear framebuffer
     int 0x10
     jc fail
 
