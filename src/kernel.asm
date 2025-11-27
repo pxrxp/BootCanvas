@@ -10,10 +10,10 @@ extern kmain
 
 [bits 16]
 kstart16:
-    cli            ; Disable interrupts.
-    lgdt [gdtr]    ; Load GDT register with start address of GDT
+    cli             ; Disable interrupts.
+    lgdt [gdtr]     ; Load GDT register with start address of GDT
     mov eax, cr0
-    or al, 1       ; Set Protected Enable (PE) bit
+    or eax, 1       ; Set Protected Enable (PE) bit
     mov cr0, eax
     jmp GDT_CODE_SEL:kstart32
 
