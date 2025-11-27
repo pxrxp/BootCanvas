@@ -4,7 +4,7 @@
 /* boot.bin and kernel.bin are concatenated later to make os.img */
 
 OUTPUT_FORMAT(elf32-i386)
-ENTRY(kstart)
+ENTRY(kstart16)
 SECTIONS
 {
   . = 0x1000;
