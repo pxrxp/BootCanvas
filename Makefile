@@ -50,15 +50,16 @@ $(KERNEL_O): $(SRC_DIR)/kernel.asm
 	$(NASM) -f elf32 $< -o $@
 
 # Compile C kernel files
-$(MAIN_O): $(wildcard $(SRC_DIR)/*.c)
+C_SRCS := $(wildcard $(SRC_DIR)/*.c)
+C_OBJS := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRCS))
+
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	mkdir -p $(BUILD_DIR)
-	@echo "--- Compiling C kernel ---"
 	$(GCC) -m32 -ffreestanding -fno-pic -O0 -g -c $< -o $@
 
-# Link kernel ELF
-$(KERNEL_ELF): $(KERNEL_O) $(MAIN_O) $(GDT_O) linker.ld
-	@echo "--- Linking kernel ELF ---"
-	$(LD) -m elf_i386 -T linker.ld -o $@ $(KERNEL_O) $(MAIN_O) $(GDT_O)
+# Then link all objects
+$(KERNEL_ELF): $(KERNEL_O) $(GDT_O) $(C_OBJS)
+	$(LD) -m elf_i386 -T linker.ld -o $@ $^
 
 # Convert kernel ELF → raw binary
 $(KERNEL_BIN): $(KERNEL_ELF)

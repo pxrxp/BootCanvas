@@ -59,7 +59,6 @@ msg_load_start db 'Attempting to load Sector 2...', 13, 10, 0
 msg_load_success db 'Load successful. Jumping to kernel...', 13, 10, 0
 msg_error db 'DISK READ ERROR!', 13, 10, 0
 
-
 align 16  
 dap:                              ; disk address packet (given to bios)
         db 16                     ; size of packet
