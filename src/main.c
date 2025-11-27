@@ -1,14 +1,13 @@
-#include <stdint.h>
 #include "graphics.h"
+#include <stdint.h>
 
-void kmain(uint32_t framebuffer, uint32_t width, uint32_t height, uint32_t bpp, uint32_t pitch) {
-    init_graphics(framebuffer, width, height, bpp, pitch);
+void kmain(uint32_t framebuffer, uint32_t width, uint32_t height, uint32_t bpp,
+           uint32_t pitch) {
+  init_graphics(framebuffer, width, height, bpp, pitch);
 
-    for (int i = 0; i < width; i++) {
-        for (int j = 0; j < height; j++) {
-            plot_pixel((Point){ i, j}, (Color){255,0,0});
-        }
-    }
-  
-    while(1);
+  rectangle((Point){100, 100}, (Point){200, 200}, (Color){0, 0, 0},
+            (Color){255, 255, 255});
+
+  while (1)
+    ;
 }

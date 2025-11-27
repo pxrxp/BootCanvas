@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-static uint32_t* g_framebuffer;
+static uint32_t *g_framebuffer;
 static uint32_t g_width;
 static uint32_t g_height;
 static uint32_t g_bpp;
@@ -17,7 +17,9 @@ typedef struct Point {
   int y;
 } Point;
 
-void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height, uint32_t bpp, uint32_t pitch);
+void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height,
+                   uint32_t bpp, uint32_t pitch);
 
 void plot_pixel(Point point, Color color);
-void rectangle();
+void rectangle(Point top_left, Point bottom_right, Color fill_color,
+               Color stroke_color);

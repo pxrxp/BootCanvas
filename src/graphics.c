@@ -20,3 +20,15 @@ void plot_pixel(Point p, Color color) {
   fb[offset + 1] = color.g;
   fb[offset + 2] = color.r;
 }
+
+void rectangle(Point top_left, Point bottom_right, Color fill_color,
+               Color stroke_color) {
+  for (int x = top_left.x; x <= bottom_right.x; x++) {
+    for (int y = top_left.y; y <= bottom_right.y; y++) {
+      plot_pixel((Point){x, y}, (x == top_left.x || y == top_left.y ||
+                                 x == bottom_right.x || y == bottom_right.y)
+                                    ? stroke_color
+                                    : fill_color);
+    }
+  }
+}
