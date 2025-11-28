@@ -55,7 +55,7 @@ C_OBJS := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SRCS))
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	mkdir -p $(BUILD_DIR)
-	$(GCC) -m32 -ffreestanding -fno-pic -O0 -g -c $< -o $@
+	$(GCC) -m32 -ffreestanding -fno-pic -fno-stack-protector -O0 -g -c $< -o $@
 
 # Then link all objects
 $(KERNEL_ELF): $(KERNEL_O) $(GDT_O) $(C_OBJS)
