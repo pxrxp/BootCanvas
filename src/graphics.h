@@ -25,7 +25,8 @@ void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height,
 
 void plot_pixel(Point point, Color color);
 void line(Point p0, Point p1, Color c);
-void rectangle(Point top_left, Point bottom_right, Color stroke_color);
-void ellipse(Point center, unsigned int rx, unsigned int ry, Color c);
+void rectangle(Point top_left, Point bottom_right, int rot_angle_deg, Color stroke_color);
+void ellipse(Point center, unsigned int rx, unsigned int ry, int rot_angle_deg,
+             Color stroke_color);
 
 #endif
