@@ -1,4 +1,5 @@
 #include "graphics.h"
+#include "math.h"
 
 void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height,
                    uint32_t bpp, uint32_t pitch) {
@@ -63,4 +64,85 @@ void line(Point p0, Point p1, Color c) {
       y0 += sy;
     }
   }
+}
+
+static void ellipse_plot_points(int xc, int yc, int x, int y, Color c)
+{
+    const int NUM = 7071;
+    const int DEN = 10000;
+
+    int xr, yr;
+
+    xr = xc + (x * SIN(45) - y * SIN(45));
+    yr = yc + (x * SIN(45) + y * SIN(45));
+    plot_pixel((Point){ xr, yr }, c);
+
+    xr = xc + (-x * SIN(45) - y * SIN(45));
+    yr = yc + (-x * SIN(45) + y * SIN(45));
+    plot_pixel((Point){ xr, yr }, c);
+
+    xr = xc + (x * SIN(45) + y * SIN(45));
+    yr = yc + (x * SIN(45) - y * SIN(45));
+    plot_pixel((Point){ xr, yr }, c);
+
+    xr = xc + (-x * SIN(45) + y * SIN(45));
+    yr = yc + (-x * SIN(45) - y * SIN(45));
+    plot_pixel((Point){ xr, yr }, c);
+}
+
+void ellipse(Point center, unsigned int rx, unsigned int ry, Color c)
+{
+    int xc = center.x;
+    int yc = center.y;
+
+    int x = 0;
+    int y = (int)ry;
+
+    uint32_t rx2 = (uint32_t)rx * (uint32_t)rx;
+    uint32_t ry2 = (uint32_t)ry * (uint32_t)ry;
+
+    uint32_t dx = 0;
+    uint32_t dy = 2u * rx2 * (uint32_t)y;
+
+    int32_t p1 = (int32_t)(ry2 - rx2 * (uint32_t)ry + (rx2 >> 2));
+
+    while (dx < dy)
+    {
+        ellipse_plot_points(xc, yc, x, y, c);
+
+        x++;
+        dx += 2u * ry2;
+
+        if (p1 < 0) {
+            p1 += (int32_t)(dx + ry2);
+        } else {
+            y--;
+            dy -= 2u * rx2;
+            p1 += (int32_t)(dx - dy + ry2);
+        }
+    }
+
+    uint32_t xp1 = (uint32_t)(x + 1);
+    uint32_t ym1 = (uint32_t)(y - 1);
+
+    int32_t p2 =
+        (int32_t)(ry2 * xp1 * xp1 +
+                  rx2 * ym1 * ym1 -
+                  rx2 * ry2);
+
+    while (y >= 0)
+    {
+        ellipse_plot_points(xc, yc, x, y, c);
+
+        y--;
+        dy -= 2u * rx2;
+
+        if (p2 > 0) {
+            p2 += (int32_t)(rx2 - dy);
+        } else {
+            x++;
+            dx += 2u * ry2;
+            p2 += (int32_t)(dx - dy + rx2);
+        }
+    }
 }
