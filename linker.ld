@@ -8,17 +8,11 @@ ENTRY(kstart16)
 SECTIONS
 {
   . = 0x1000;
-  .text ALIGN(4K) :
-  {
-    *(kernel.o)
+  .text : {
+    *kernel.o(.text)
     *(.text)
   }
-  .data ALIGN(4K) :
-  {
-    *(.data)
-  }
-  .bss ALIGN(4K) :
-  {
-    *(.bss)
-  }
+  .rodata : { *(.rodata) }
+  .data : { *(.data) }
+  .bss : { *(.bss COMMON) }
 }

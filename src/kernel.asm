@@ -1,3 +1,7 @@
+section .bss
+align 16
+stack_bottom resb 8192
+
 section .text
 
 extern gdtr
@@ -40,8 +44,8 @@ kstart32:
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    mov esp, 0x90000
-
+    mov esp, stack_bottom + 8192
+    
     mov eax, [vesa_info + 40]      ; framebuffer ptr
     mov bx, [vesa_info + 18]       ; width
     mov cx, [vesa_info + 20]       ; height

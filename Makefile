@@ -9,9 +9,6 @@ LDFLAGS   = -T linker.ld
 
 BOOT_BIN   = $(BUILD_DIR)/boot.bin
 BOOT_TMP   = $(BUILD_DIR)/boot_fixed.asm
-MAIN_O     = $(BUILD_DIR)/main.o
-KERNEL_O   = $(BUILD_DIR)/kernel.o
-GDT_O      = $(BUILD_DIR)/gdt.o
 KERNEL_ELF = $(BUILD_DIR)/kernel.elf
 KERNEL_BIN = $(BUILD_DIR)/kernel.bin
 OS_IMG     = $(BUILD_DIR)/os.img
@@ -37,16 +34,13 @@ $(BOOT_BIN): $(BOOT_SRC) $(KERNEL_BIN)
 	@echo "--- Assembling bootloader ---"
 	$(NASM) -f bin $(BOOT_TMP) -o $@
 
-# Assemble GDT
-$(GDT_O): $(SRC_DIR)/gdt.asm
-	mkdir -p $(BUILD_DIR)
-	@echo "--- Assembling GDT ---"
-	$(NASM) -f elf32 $< -o $@
+ASM_SRCS := $(filter-out $(SRC_DIR)/boot.asm,$(wildcard $(SRC_DIR)/*.asm))
+ASM_OBJS := $(patsubst $(SRC_DIR)/%.asm,$(BUILD_DIR)/%.o,$(ASM_SRCS))
 
-# Assemble kernel
-$(KERNEL_O): $(SRC_DIR)/kernel.asm
+# Pattern rule for assembling all ASM files automatically
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.asm
 	mkdir -p $(BUILD_DIR)
-	@echo "--- Assembling Kernel ---"
+	@echo "--- Assembling $< ---"
 	$(NASM) -f elf32 $< -o $@
 
 # Compile C kernel files
@@ -58,7 +52,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(GCC) -m32 -ffreestanding -fno-pic -fno-stack-protector -O0 -g -c $< -o $@
 
 # Then link all objects
-$(KERNEL_ELF): $(KERNEL_O) $(GDT_O) $(C_OBJS)
+$(KERNEL_ELF): $(ASM_OBJS) $(C_OBJS)
 	$(LD) -m elf_i386 -T linker.ld -o $@ $^
 
 # Convert kernel ELF → raw binary
