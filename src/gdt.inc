@@ -1,0 +1,2 @@
+GDT_CODE_SEL equ 0x08
+GDT_DATA_SEL equ 0x10

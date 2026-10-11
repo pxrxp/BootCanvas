@@ -5,8 +5,7 @@ stack_bottom resb 8192
 section .text
 
 extern gdtr
-extern GDT_CODE_SEL
-extern GDT_DATA_SEL
+%include "src/gdt.inc"
 
 global kstart16
 global kstart32
