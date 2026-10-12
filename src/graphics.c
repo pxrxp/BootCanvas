@@ -1,6 +1,7 @@
 #include "graphics.h"
-#include "math.h"
 #include "font.h"
+#include "math.h"
+#include <stdbool.h>
 
 void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height,
                    uint32_t bpp, uint32_t pitch) {
@@ -12,7 +13,7 @@ void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height,
   g_pitch = pitch;
 
   for (int y = 0; y < g_height; y++) {
-        g_y_offsets[y] = y * g_pitch;
+    g_y_offsets[y] = y * g_pitch;
   }
 }
 
@@ -33,72 +34,71 @@ void plot_pixel(Point p, Color color) {
   fb[2] = color.r;
 }
 
-void put_text(char *text, Point top_left, Color color, unsigned int x_space, unsigned int y_space) {
-    if (!text) return;
+void put_text(char *text, Point top_left, Color color, unsigned int x_space,
+              unsigned int y_space) {
+  if (!text)
+    return;
 
-    uint8_t *fb = (uint8_t *)g_framebuffer;
-    Point p;
+  uint8_t *fb = (uint8_t *)g_framebuffer;
+  bool is_global = top_left.x == -1 && top_left.y == -1;
 
-    if (top_left.x == -1 && top_left.y == -1) {
-      p = g_p;
-    } else {
-      p = top_left;
+  Point p = is_global ? g_p : top_left;
+  int start_x = p.x;
+
+  while (*text) {
+    char c = *text++;
+
+    if (c == '\n') {
+      p.x = start_x;
+      p.y += 8 + y_space;
+      continue;
     }
 
-    while (*text) {
-        char c = *text++;
-
-        if (c == '\n') {
-            p.x = top_left.x;
-            p.y += 8 + y_space;
-            goto save;
-        }
-
-        if (c == '\t') {
-            p.x += (8 + x_space) * 4;
-            goto save;
-        }
-
-        // Screen clipping checks (done ONCE per character/line, not per pixel)
-        if (p.x + 8 > g_width) {
-            p.x = top_left.x;
-            p.y += 8 + y_space;
-        }
-        if (p.y + 8 > g_height) break;
-
-        if (c >= '!' && c <= '~') {
-            const uint8_t *glyph = font_map[c - '!'];
-
-            for (int y = 0; y < 8; y++) {
-                uint8_t row = glyph[y];
-                if (!row) continue; // Skip empty rows completely
-
-                // Calculate base row offset ONCE for this row of 8 pixels
-                uint32_t row_offset = (p.y + y) * g_pitch + p.x * g_bpp_8;
-                uint8_t *pixel_ptr = fb + row_offset;
-
-                for (int x = 0; x < 8; x++) {
-                    if (row & 1) {
-                        pixel_ptr[0] = color.b;
-                        pixel_ptr[1] = color.g;
-                        pixel_ptr[2] = color.r;
-                    }
-                    pixel_ptr += g_bpp_8; // Move to next adjacent pixel in memory
-                    row = row >> 1;
-                }
-            }
-        }
-
-        p.x += 8 + x_space;
-save:
-        if (top_left.x == -1 && top_left.y == -1) {
-          g_p = p;
-        }
+    if (c == '\t') {
+      p.x += (8 + x_space) * 4;
+      continue;
     }
+
+    if (p.x + 8 > g_width) {
+      p.x = start_x;
+      p.y += 8 + y_space;
+    }
+    if (p.y + 8 > g_height)
+      break;
+
+    if (c >= '!' && c <= '~') {
+      const uint8_t *glyph = font_map[c - '!'];
+
+      for (int y = 0; y < 8; y++) {
+        uint8_t row = glyph[y];
+        if (!row)
+          continue;
+
+        uint32_t row_offset = (p.y + y) * g_pitch + p.x * g_bpp_8;
+        uint8_t *pixel_ptr = fb + row_offset;
+
+        for (int x = 0; x < 8; x++) {
+          if (row & 1) {
+            pixel_ptr[0] = color.b;
+            pixel_ptr[1] = color.g;
+            pixel_ptr[2] = color.r;
+          }
+          pixel_ptr += g_bpp_8;
+          row >>= 1;
+        }
+      }
+    }
+
+    p.x += 8 + x_space;
+  }
+
+  if (is_global) {
+    g_p = p;
+  }
 }
 
-void print(char* text) {
-  put_text(text, (Point){-1,-1}, (Color){255,255,255}, 0, 3);
+void print(char *text) {
+  put_text(text, (Point){-1, -1}, (Color){255, 255, 255}, 0, 3);
 }
 
 void rectangle(Point top_left, Point bottom_right, int rot_angle_deg,
@@ -157,6 +157,7 @@ static void ellipse_plot_points(Point center, Point p, int angle_deg, Color c) {
   plot_pixel(rotate(center, (Point){xc + x, yc - y}, angle_deg), c);
   plot_pixel(rotate(center, (Point){xc - x, yc - y}, angle_deg), c);
 }
+
 void ellipse(Point center, unsigned int rx, unsigned int ry, int rot_angle_deg,
              Color c) {
   int xc = center.x;
@@ -205,6 +206,17 @@ void ellipse(Point center, unsigned int rx, unsigned int ry, int rot_angle_deg,
       x++;
       dx += 2u * ry2;
       p2 += (int32_t)(dx - dy + rx2);
+    }
+  }
+}
+
+void clear(Color color) {
+  for (int y = 0; y < g_height; y++) {
+    for (int x = 0; x < g_width; x++) {
+      uint8_t *fb = (uint8_t *)g_framebuffer + g_y_offsets[y] + x * g_bpp_8;
+      fb[0] = color.b;
+      fb[1] = color.g;
+      fb[2] = color.r;
     }
   }
 }

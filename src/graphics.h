@@ -36,5 +36,6 @@ void ellipse(Point center, unsigned int rx, unsigned int ry, int rot_angle_deg,
              Color stroke_color);
 void put_text(char *text, Point top_left, Color color, unsigned int x_space, unsigned int y_space);
 void print(char* text);
+void clear(Color color);
 
 #endif
