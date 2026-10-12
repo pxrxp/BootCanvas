@@ -1,4 +1,5 @@
 #include "graphics.h"
+#include "string.h"
 #include "util.h"
 #include <stdint.h>
 
@@ -12,15 +13,18 @@ void kmain(uint32_t framebuffer, uint32_t width, uint32_t height, uint32_t bpp,
   rectangle((Point){0, 0}, (Point){width - 1, height - 1}, 0,
             (Color){255, 255, 255});
   ellipse((Point){width / 2, height / 2}, 150, 300, 0, (Color){255, 255, 0});
-  print("Hello world!\n");
-  print("Bye bye");
-  while (1) {
-      int x = mouse_x;
-      int y = mouse_y;
+  // clear((Color){255, 0, 0});
 
-      if (x >= 0 && x < (int)width &&
-          y >= 0 && y < (int)height) {
-          plot_pixel((Point){x, y}, (Color){255, 255, 255});
-      }
+  char str[6];
+  itoa(-9821, str);
+  print(str);
+
+  while (1) {
+    int x = mouse_x;
+    int y = mouse_y;
+
+    if (x >= 0 && x < (int)width && y >= 0 && y < (int)height) {
+      plot_pixel((Point){x, y}, (Color){255, 255, 255});
+    }
   }
 }
