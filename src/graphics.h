@@ -7,7 +7,11 @@ static uint32_t *g_framebuffer;
 static uint32_t g_width;
 static uint32_t g_height;
 static uint32_t g_bpp;
+static uint32_t g_bpp_8;
 static uint32_t g_pitch;
+
+#define MAX_HEIGHT 1080
+static uint32_t g_y_offsets[MAX_HEIGHT];
 
 typedef struct {
   uint8_t r;
@@ -28,5 +32,7 @@ void line(Point p0, Point p1, Color c);
 void rectangle(Point top_left, Point bottom_right, int rot_angle_deg, Color stroke_color);
 void ellipse(Point center, unsigned int rx, unsigned int ry, int rot_angle_deg,
              Color stroke_color);
+void put_text(char *text, Point top_left, Color color, unsigned int x_space, unsigned int y_space);
+void print(char* text);
 
 #endif

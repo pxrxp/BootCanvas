@@ -1,5 +1,6 @@
 #include "graphics.h"
 #include "math.h"
+#include "font.h"
 
 void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height,
                    uint32_t bpp, uint32_t pitch) {
@@ -7,7 +8,12 @@ void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height,
   g_width = width;
   g_height = height;
   g_bpp = bpp;
+  g_bpp_8 = g_bpp >> 3;
   g_pitch = pitch;
+
+  for (int y = 0; y < g_height; y++) {
+        g_y_offsets[y] = y * g_pitch;
+  }
 }
 
 Point rotate(Point center, Point p, int angle_deg) {
@@ -21,12 +27,68 @@ void plot_pixel(Point p, Color color) {
   if (p.x < 0 || p.x >= g_width || p.y < 0 || p.y >= g_height)
     return;
 
-  uint32_t offset = p.y * g_pitch + p.x * (g_bpp / 8);
-  uint8_t *fb = (uint8_t *)g_framebuffer;
+  uint8_t *fb = (uint8_t *)g_framebuffer + g_y_offsets[p.y] + p.x * g_bpp_8;
+  fb[0] = color.b;
+  fb[1] = color.g;
+  fb[2] = color.r;
+}
 
-  fb[offset + 0] = color.b;
-  fb[offset + 1] = color.g;
-  fb[offset + 2] = color.r;
+void put_text(char *text, Point top_left, Color color, unsigned int x_space, unsigned int y_space) {
+    if (!text) return;
+
+    uint8_t *fb = (uint8_t *)g_framebuffer;
+    Point p = top_left;
+
+    while (*text) {
+        char c = *text++;
+
+        if (c == '\n') {
+            p.x = top_left.x;
+            p.y += 8 + y_space;
+            continue;
+        }
+
+        if (c == '\t') {
+            p.x += (8 + x_space) * 4;
+            continue;
+        }
+
+        // Screen clipping checks (done ONCE per character/line, not per pixel)
+        if (p.x + 8 > g_width) {
+            p.x = top_left.x;
+            p.y += 8 + y_space;
+        }
+        if (p.y + 8 > g_height) break;
+
+        if (c >= '!' && c <= '~') {
+            const uint8_t *glyph = font_map[c - '!'];
+
+            for (int y = 0; y < 8; y++) {
+                uint8_t row = glyph[y];
+                if (!row) continue; // Skip empty rows completely
+
+                // Calculate base row offset ONCE for this row of 8 pixels
+                uint32_t row_offset = (p.y + y) * g_pitch + p.x * g_bpp_8;
+                uint8_t *pixel_ptr = fb + row_offset;
+
+                for (int x = 0; x < 8; x++) {
+                    if (row & 1) {
+                        pixel_ptr[0] = color.b;
+                        pixel_ptr[1] = color.g;
+                        pixel_ptr[2] = color.r;
+                    }
+                    pixel_ptr += g_bpp_8; // Move to next adjacent pixel in memory
+                    row = row >> 1;
+                }
+            }
+        }
+
+        p.x += 8 + x_space;
+    }
+}
+
+void print(char* text) {
+  put_text(text, (Point){0,0}, (Color){255,255,255}, 0, 3);
 }
 
 void rectangle(Point top_left, Point bottom_right, int rot_angle_deg,

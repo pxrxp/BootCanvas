@@ -12,7 +12,14 @@ void kmain(uint32_t framebuffer, uint32_t width, uint32_t height, uint32_t bpp,
   rectangle((Point){0, 0}, (Point){width - 1, height - 1}, 0,
             (Color){255, 255, 255});
   ellipse((Point){width / 2, height / 2}, 150, 300, 0, (Color){255, 255, 0});
-  while(1) {
-    plot_pixel((Point){mouse_x, mouse_y}, (Color){255,255,255});
+  print("Hello world!");
+  while (1) {
+      int x = mouse_x;
+      int y = mouse_y;
+
+      if (x >= 0 && x < (int)width &&
+          y >= 0 && y < (int)height) {
+          plot_pixel((Point){x, y}, (Color){255, 255, 255});
+      }
   }
 }
