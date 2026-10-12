@@ -12,7 +12,8 @@ void kmain(uint32_t framebuffer, uint32_t width, uint32_t height, uint32_t bpp,
   rectangle((Point){0, 0}, (Point){width - 1, height - 1}, 0,
             (Color){255, 255, 255});
   ellipse((Point){width / 2, height / 2}, 150, 300, 0, (Color){255, 255, 0});
-  print("Hello world!");
+  print("Hello world!\n");
+  print("Bye bye");
   while (1) {
       int x = mouse_x;
       int y = mouse_y;

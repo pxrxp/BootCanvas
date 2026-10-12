@@ -24,6 +24,8 @@ typedef struct Point {
   int y;
 } Point;
 
+static Point g_p;
+
 void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height,
                    uint32_t bpp, uint32_t pitch);
 

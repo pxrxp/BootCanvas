@@ -37,7 +37,13 @@ void put_text(char *text, Point top_left, Color color, unsigned int x_space, uns
     if (!text) return;
 
     uint8_t *fb = (uint8_t *)g_framebuffer;
-    Point p = top_left;
+    Point p;
+
+    if (top_left.x == -1 && top_left.y == -1) {
+      p = g_p;
+    } else {
+      p = top_left;
+    }
 
     while (*text) {
         char c = *text++;
@@ -45,12 +51,12 @@ void put_text(char *text, Point top_left, Color color, unsigned int x_space, uns
         if (c == '\n') {
             p.x = top_left.x;
             p.y += 8 + y_space;
-            continue;
+            goto save;
         }
 
         if (c == '\t') {
             p.x += (8 + x_space) * 4;
-            continue;
+            goto save;
         }
 
         // Screen clipping checks (done ONCE per character/line, not per pixel)
@@ -84,11 +90,15 @@ void put_text(char *text, Point top_left, Color color, unsigned int x_space, uns
         }
 
         p.x += 8 + x_space;
+save:
+        if (top_left.x == -1 && top_left.y == -1) {
+          g_p = p;
+        }
     }
 }
 
 void print(char* text) {
-  put_text(text, (Point){0,0}, (Color){255,255,255}, 0, 3);
+  put_text(text, (Point){-1,-1}, (Color){255,255,255}, 0, 3);
 }
 
 void rectangle(Point top_left, Point bottom_right, int rot_angle_deg,
