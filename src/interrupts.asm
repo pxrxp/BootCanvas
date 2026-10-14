@@ -3,15 +3,23 @@
 
 section .data
 align 4
-global last_scancode, mouse_x, mouse_y
+global last_scancode, mouse_x, mouse_y, mouse_buttons
 
 mouse_x:       dd 0
 mouse_y:       dd 0
 last_scancode: dd 0
+mouse_buttons: db 0
+
+mouse_packet:       times 3 db 0
+mouse_packet_index: db 0
+
+global mouse_irq_count
+mouse_irq_count: dd 0
 
 section .text
 global keyboard_handler
 global mouse_handler
+global init_mouse
 global pic_remap
 
 PIC1_COMMAND equ 0x20            ; Master PIC command port
@@ -31,18 +39,105 @@ keyboard_handler:
     iret
 
 ; Read mouse data and acknowledge IRQ12.
-; Currently counts interrupts instead of decoding mouse movement.
 mouse_handler:
     pusha
-    in al, 0x60                  ; PS/2 controller data port
-    mov ebx, mouse_x
-    inc dword [ebx]
-    mov al, 0x20                 ; EOI command
-    out PIC2_COMMAND, al         ; Acknowledge slave PIC first
-    out PIC1_COMMAND, al         ; Then acknowledge master PIC
+
+    inc dword [mouse_irq_count]
+
+    ; Read one byte from the mouse.
+    in al, 0x60
+
+    movzx ebx, byte [mouse_packet_index]
+
+    ; The first byte has bit 3 set.
+    ; Ignore bytes that cannot start a packet.
+    cmp bl, 0
+    jne .store
+
+    test al, 00001000b
+    jz .done
+
+.store:
+    mov [mouse_packet + ebx], al
+    inc bl
+
+    cmp bl, 3
+    jb .save_index
+
+    ; A full packet has arrived.
+    mov byte [mouse_packet_index], 0
+
+    ; Store the three button bits.
+    mov al, [mouse_packet]
+    and al, 00000111b
+    mov [mouse_buttons], al
+
+    ; Ignore movement packets with overflow.
+    test byte [mouse_packet], 11000000b
+    jnz .done
+
+    ; Signed X movement.
+    movsx eax, byte [mouse_packet + 1]
+    add [mouse_x], eax
+
+    ; Signed Y movement. Screen coordinates usually grow downward.
+    movsx eax, byte [mouse_packet + 2]
+    sub [mouse_y], eax
+    jmp .done
+
+.save_index:
+    mov [mouse_packet_index], bl
+
+.done:
+    ; Acknowledge both PICs for IRQ12.
+    mov al, 0x20
+    out PIC2_COMMAND, al
+    out PIC1_COMMAND, al
+
     popa
     iret
 
+init_mouse:
+    cli
+
+    ; Enable the PS/2 auxiliary device.
+    mov al, 0xA8
+    out 0x64, al
+
+    ; Read the PS/2 controller configuration byte.
+    mov al, 0x20
+    out 0x64, al
+    call ps2_read
+
+    ; Enable IRQ12 and enable the mouse clock.
+    or al, 00000010b
+    and al, 11011111b
+    mov bl, al
+
+    ; Write the updated configuration byte.
+    mov al, 0x60
+    out 0x64, al
+    mov al, bl
+    out 0x60, al
+
+    ; Send the mouse command 0xF4 (enable reporting).
+    mov al, 0xD4
+    out 0x64, al
+    mov al, 0xF4
+    out 0x60, al
+
+    ; Read the mouse acknowledgement (normally 0xFA).
+    call ps2_read
+
+    ret
+
+; Wait for a byte, then read it from port 0x60.
+ps2_read:
+    in al, 0x64
+    test al, 1
+    jz ps2_read
+    in al, 0x60
+    ret
 
 ; The PIC forwards hardware interrupts (IRQs) to the CPU.
 ; In protected mode, CPU exceptions use vectors 0-31, so we move

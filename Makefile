@@ -63,7 +63,7 @@ $(KERNEL_BIN): $(KERNEL_ELF)
 # Run in QEMU
 run: $(OS_IMG)
 	@echo "--- Running in QEMU ---"
-	$(QEMU) -drive format=raw,file=$<
+	$(QEMU) -drive format=raw,file=$< -no-reboot -d int,cpu_reset -D build/qemu.log
 
 # Clean
 clean:
