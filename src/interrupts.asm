@@ -13,9 +13,6 @@ mouse_buttons: db 0
 mouse_packet:       times 3 db 0
 mouse_packet_index: db 0
 
-global mouse_irq_count
-mouse_irq_count: dd 0
-
 section .text
 global keyboard_handler
 global mouse_handler
@@ -31,8 +28,8 @@ PIC2_DATA    equ 0xA1            ; Slave PIC data/mask port
 keyboard_handler:
     pusha
     in al, 0x60                  ; PS/2 controller data port
-    mov ebx, last_scancode
-    mov [ebx], al
+    movzx eax, al
+    mov [last_scancode], eax
     mov al, 0x20                 ; EOI command: tell the PIC the IRQ is handled
     out PIC1_COMMAND, al
     popa
@@ -41,8 +38,6 @@ keyboard_handler:
 ; Read mouse data and acknowledge IRQ12.
 mouse_handler:
     pusha
-
-    inc dword [mouse_irq_count]
 
     ; Read one byte from the mouse.
     in al, 0x60
@@ -101,10 +96,12 @@ init_mouse:
     cli
 
     ; Enable the PS/2 auxiliary device.
+    call ps2_wait_write
     mov al, 0xA8
     out 0x64, al
 
     ; Read the PS/2 controller configuration byte.
+    call ps2_wait_write
     mov al, 0x20
     out 0x64, al
     call ps2_read
@@ -115,14 +112,18 @@ init_mouse:
     mov bl, al
 
     ; Write the updated configuration byte.
+    call ps2_wait_write
     mov al, 0x60
     out 0x64, al
+    call ps2_wait_write
     mov al, bl
     out 0x60, al
 
     ; Send the mouse command 0xF4 (enable reporting).
+    call ps2_wait_write
     mov al, 0xD4
     out 0x64, al
+    call ps2_wait_write
     mov al, 0xF4
     out 0x60, al
 
@@ -137,6 +138,12 @@ ps2_read:
     test al, 1
     jz ps2_read
     in al, 0x60
+    ret
+
+ps2_wait_write:
+    in al, 0x64
+    test al, 00000010b    ; Check if Input Buffer Full flag (bit 1) is set
+    jnz ps2_wait_write    ; Wait until buffer is clear before writing
     ret
 
 ; The PIC forwards hardware interrupts (IRQs) to the CPU.
