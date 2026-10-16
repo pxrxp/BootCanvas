@@ -65,6 +65,8 @@
 section .data 
 
 global gdtr
+global GDT_CODE_SEL
+global GDT_DATA_SEL
 
 struc gdt_entry_struct
 	limit_low:   resb 2
@@ -110,3 +112,6 @@ gdt_end:
 gdtr:
     dw gdt_end - gdt_start - 1
     dd gdt_start
+
+GDT_CODE_SEL equ gdt_code - gdt_start
+GDT_DATA_SEL equ gdt_data - gdt_start

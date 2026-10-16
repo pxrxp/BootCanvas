@@ -4,7 +4,6 @@
 section .data
 align 4
 global idtr
-%include "src/gdt.inc"
 
 idtr:
     dw idt_end - idt_start - 1   ; IDT size in bytes minus 1
@@ -22,8 +21,9 @@ global set_idt_gate
 global setup_interrupts
 extern keyboard_handler
 extern mouse_handler
-extern pic_remap
+extern remap_pic
 extern init_mouse
+extern GDT_CODE_SEL
 
 PIC1_COMMAND equ 0x20            ; Master PIC command port
 PIC1_DATA    equ 0x21            ; Master PIC data/mask port
@@ -51,7 +51,7 @@ set_idt_gate:
     ret
 
 setup_interrupts:
-    call pic_remap
+    call remap_pic
 
     mov eax, keyboard_handler
     mov edx, 0x21                ; IRQ1 (keyboard) -> vector 0x21

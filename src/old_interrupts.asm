@@ -17,7 +17,6 @@ section .text
 global keyboard_handler
 global mouse_handler
 global init_mouse
-global pic_remap
 
 PIC1_COMMAND equ 0x20            ; Master PIC command port
 PIC1_DATA    equ 0x21            ; Master PIC data/mask port
@@ -144,61 +143,4 @@ ps2_wait_write:
     in al, 0x64
     test al, 00000010b    ; Check if Input Buffer Full flag (bit 1) is set
     jnz ps2_wait_write    ; Wait until buffer is clear before writing
-    ret
-
-; The PIC forwards hardware interrupts (IRQs) to the CPU.
-; In protected mode, CPU exceptions use vectors 0-31, so we move
-; hardware IRQs to vectors 32-47 to avoid conflicts.
-;
-; Master PIC: IRQ0-7  -> vectors 32-39 (0x20-0x27)
-; Slave PIC:  IRQ8-15 -> vectors 40-47 (0x28-0x2F)
-;
-; The CPU uses the resulting vector number to find the handler in the IDT.
- 
-pic_remap:
-    pusha
-
-    ; ICW1: initialize both PICs
-    ; 0x11 = 00010001b:
-    ;   bit 4 = 1: this is an initialization command.
-    ;   bit 0 = 1: ICW4 WILL follow, so the PIC expects 4 control words.
-    ; If bit 0 were 0 (ICW1 = 0x10), ICW4 would be omitted,
-    ; and the PIC would expect only ICW2 and ICW3 after ICW1.
-    mov al, 0x11
-    out PIC1_COMMAND, al
-    out PIC2_COMMAND, al
-    
-    ; ICW2: choose the starting interrupt vector for each PIC.
-    mov al, 0x20                 ; Master IRQ0-7 -> vectors 0x20-0x27
-    out PIC1_DATA, al
-    mov al, 0x28                 ; Slave IRQ8-15 -> vectors 0x28-0x2F
-    out PIC2_DATA, al
-    
-    ; ICW3: describe how the two PICs are connected.
-    ; Each PIC handles 8 IRQ inputs, but a PC needs more.
-    ; The master handles IRQ0-IRQ7; the slave handles IRQ8-IRQ15.
-    ; The slave's output connects to the master's IRQ2 input.
-    ; The master forwards slave interrupt requests to the CPU.
-    
-    ; Master ICW3 = 0x04 = 00000100b:
-    ; Each bit represents one master IRQ input.
-    ; Bit n = 1 means a slave is connected to IRQn.
-    ; Only bit 2 is set, so the slave connects to master IRQ2.
-    mov al, 0x04
-    out PIC1_DATA, al             ; Master: slave connected to IRQ2
-
-    ; Slave ICW3 = 0x02
-    ; The slave uses a number, not a bitmask.
-    ; Value 2 identifies the master's IRQ input it connects to.
-    ; Both values describe the same connection from opposite sides.
-    mov al, 0x02
-    out PIC2_DATA, al             ; Slave: connected to master IRQ2
-    
-
-    ; ICW4: configure the PIC for 8086-compatible mode.
-    ; 0x01 = 00000001b; bit 0 selects 8086 mode (else 8085).
-    mov al, 0x01
-    out PIC1_DATA, al
-    out PIC2_DATA, al
-    popa
     ret
