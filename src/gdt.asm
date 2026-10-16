@@ -107,6 +107,25 @@ gdt_data:
         at flags_limit, db 0b11001111
         at base_high,   db 0
     iend
+gdt_user_code:
+    istruc gdt_entry_struct
+        at limit_low,   dw 0xFFFF
+        at base_low,    dw 0
+        at base_middle, db 0
+        at access,      db 0b11111010   ; Ring 3 (DPL=11)
+        at flags_limit, db 0b11001111
+        at base_high,   db 0
+    iend
+
+gdt_user_data:
+    istruc gdt_entry_struct
+        at limit_low,   dw 0xFFFF
+        at base_low,    dw 0
+        at base_middle, db 0
+        at access,      db 0b11110010   ; Ring 3 (DPL=11)
+        at flags_limit, db 0b11001111
+        at base_high,   db 0
+    iend
 gdt_end:
 
 gdtr:
