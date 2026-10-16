@@ -1,17 +1,17 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-static int Xn;
+static uint32_t state = 123456789;
 
-int a = 0;
+int a = 1664525U;
 int c = 0;
 int m = 0;
 
-void srand(unsigned int seed) { Xn = seed; }
+void srand(unsigned int seed) { state = seed; }
 
 int rand() {
-  Xn = (a * Xn + c) % m;
-  return Xn;
+  state = 1664525U * state + 1013904223U;
+  return state;
 }
 
 int atoi(const char *str) {
