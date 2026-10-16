@@ -1,6 +1,4 @@
-#include "graphics.h"
-#include <stdlib.h>
-#include "util.h"
+#include "drivers/graphics.h"
 #include <stdint.h>
 
 extern volatile int mouse_x, mouse_y;
@@ -16,11 +14,10 @@ void kmain(uint32_t framebuffer, uint32_t width, uint32_t height, uint32_t bpp,
 
   double a = 0.1;
   double b = 0.2;
-  double c = (a + b)*3;
+  double c = (a + b) * 3;
 
   while (1) {
     int x = mouse_x;
     int y = mouse_y;
-
   }
 }

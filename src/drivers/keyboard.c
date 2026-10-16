@@ -1,5 +1,5 @@
-#include "interrupts.h"
-#include "io.h"
+#include "arch/interrupts.h"
+#include "arch/io.h"
 #include <stdbool.h>
 #include <stdint.h>
 

@@ -1,4 +1,4 @@
-#include <math.h>
+#include "math.h"
 
 static unsigned int sin_table[] = {
     0,     1745,  3490,  5234,  6976,  8716,  10453, 12187, 13917, 15643, 17365,
@@ -27,6 +27,4 @@ int sin_num(int angle_deg) {
     return -sin_table[360 - angle_deg];
 }
 
-int cos_num(int angle_deg) {
-  return sin_num(90 - angle_deg);
-}
+int cos_num(int angle_deg) { return sin_num(90 - angle_deg); }
