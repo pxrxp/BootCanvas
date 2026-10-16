@@ -41,7 +41,10 @@ kstart16:
     jc fail
 
     mov eax, cr0
-    or eax, 1                     ; Set Protected Enable (PE) bit
+    or eax, 0x01                  ; Set Protected Enable (PE) bit
+    and eax, ~0x02                ; Clear Emulation bit (no need to interrupt to let software handle floating point operations)
+    or eax, 0b00100000            ; Math coprocessor (FPU) is installed
+    or eax, 0b00000010            ; Floating point errors should trigger CPU exception vector not external interrupt
     mov cr0, eax
     jmp GDT_CODE_SEL:kstart32
 
