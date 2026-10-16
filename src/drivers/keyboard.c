@@ -1,9 +1,11 @@
-#include "arch/interrupts.h"
-#include "arch/io.h"
+#include "../arch/interrupts.h"
+#include "../arch/io.h"
+#include "scancode.h"
 #include <stdbool.h>
 #include <stdint.h>
 
-static uint8_t last_scancode;
+static ScanCode last_scancode;
+static bool key_pressed;
 
 #define OUTPUT_BUFFER_FULL 0b00000001
 #define INPUT_BUFFER_FULL 0b00000010
@@ -102,5 +104,14 @@ uint8_t read_keyboard_data(void) {
 
 void keyboard_handler(void) {
   uint8_t scancode = read_keyboard_data();
+
+  if (last_scancode == 0xE0) {
+    last_scancode <<= 8;
+    last_scancode |= scancode;
+  } else {
+    key_pressed = !(scancode & 0b10000000);
+    last_scancode = scancode;
+  }
+  
   end_of_interrupt(0x1);
 }
