@@ -1,7 +1,19 @@
 #include "graphics.h"
 #include "font.h"
-#include "math.h"
+#include <math.h>
 #include <stdbool.h>
+
+static uint32_t *g_framebuffer;
+static uint32_t g_width;
+static uint32_t g_height;
+static uint32_t g_bpp;
+static uint32_t g_bpp_8;
+static uint32_t g_pitch;
+
+#define MAX_HEIGHT 1080
+static uint32_t g_y_offsets[MAX_HEIGHT];
+
+static Point g_p;
 
 void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height,
                    uint32_t bpp, uint32_t pitch) {
@@ -20,8 +32,8 @@ void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height,
 Point rotate(Point center, Point p, int angle_deg) {
   int dx = p.x - center.x;
   int dy = p.y - center.y;
-  return (Point){center.x + (dx * COS(angle_deg) - dy * SIN(angle_deg)),
-                 center.y + (dx * SIN(angle_deg) + dy * COS(angle_deg))};
+  return (Point){center.x + (dx * cos(angle_deg) - dy * sin(angle_deg)),
+                 center.y + (dx * sin(angle_deg) + dy * cos(angle_deg))};
 }
 
 void plot_pixel(Point p, Color color) {

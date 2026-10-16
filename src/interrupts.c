@@ -38,7 +38,7 @@
 //
 // The CPU uses the resulting vector number to find the handler in the IDT.
 
-void remap_pic() {
+void remap_pic(void) {
   // ICW1
   outb(MASTER_PIC_COMMAND_PORT, INITIALIZE_PIC | EXPECT_ICW4);
   outb(SLAVE_PIC_COMMAND_PORT, INITIALIZE_PIC | EXPECT_ICW4);

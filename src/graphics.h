@@ -3,16 +3,6 @@
 
 #include <stdint.h>
 
-static uint32_t *g_framebuffer;
-static uint32_t g_width;
-static uint32_t g_height;
-static uint32_t g_bpp;
-static uint32_t g_bpp_8;
-static uint32_t g_pitch;
-
-#define MAX_HEIGHT 1080
-static uint32_t g_y_offsets[MAX_HEIGHT];
-
 typedef struct {
   uint8_t r;
   uint8_t g;
@@ -23,8 +13,6 @@ typedef struct Point {
   int x;
   int y;
 } Point;
-
-static Point g_p;
 
 void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height,
                    uint32_t bpp, uint32_t pitch);

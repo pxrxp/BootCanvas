@@ -3,18 +3,16 @@
 
 section .data
 align 4
-global last_scancode, mouse_x, mouse_y, mouse_buttons
+global mouse_x, mouse_y, mouse_buttons
 
 mouse_x:       dd 0
 mouse_y:       dd 0
-last_scancode: dd 0
 mouse_buttons: db 0
 
 mouse_packet:       times 3 db 0
 mouse_packet_index: db 0
 
 section .text
-global keyboard_handler
 global mouse_handler
 global init_mouse
 
@@ -22,17 +20,6 @@ PIC1_COMMAND equ 0x20            ; Master PIC command port
 PIC1_DATA    equ 0x21            ; Master PIC data/mask port
 PIC2_COMMAND equ 0xA0            ; Slave PIC command port
 PIC2_DATA    equ 0xA1            ; Slave PIC data/mask port
-
-; Read the keyboard scancode and acknowledge IRQ1.
-keyboard_handler:
-    pusha
-    in al, 0x60                  ; PS/2 controller data port
-    movzx eax, al
-    mov [last_scancode], eax
-    mov al, 0x20                 ; EOI command: tell the PIC the IRQ is handled
-    out PIC1_COMMAND, al
-    popa
-    iret
 
 ; Read mouse data and acknowledge IRQ12.
 mouse_handler:

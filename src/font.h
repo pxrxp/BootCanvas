@@ -1,3 +1,6 @@
+#ifndef FONT_H
+#define FONT_H
+
 #include <stdint.h>
 
 static uint8_t font_map[94][8] = {
@@ -96,3 +99,5 @@ static uint8_t font_map[94][8] = {
     { 0x07, 0x0C, 0x0C, 0x38, 0x0C, 0x0C, 0x07, 0x00},   // U+007D (})
     { 0x6E, 0x3B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}    // U+007E (~)
 };
+
+#endif
