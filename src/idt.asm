@@ -19,7 +19,7 @@ idt_end:
 section .text
 global set_idt_gate
 global setup_interrupts
-extern keyboard_handler
+extern irq1_keyboard_stub
 extern mouse_handler
 extern remap_pic
 extern init_mouse
@@ -53,7 +53,7 @@ set_idt_gate:
 setup_interrupts:
     call remap_pic
 
-    mov eax, keyboard_handler
+    mov eax, irq1_keyboard_stub
     mov edx, 0x21                ; IRQ1 (keyboard) -> vector 0x21
     call set_idt_gate
 
