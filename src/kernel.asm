@@ -16,6 +16,14 @@ extern GDT_DATA_SEL
 [bits 16]
 kstart16:
     cli                           ; Disable interrupts.
+
+    in al, 0x92                   ; Fast A20 port
+    or al, 0x02                   ; Enable A20
+    out 0x92, al
+
+    mov ax, 0x2401                ; Fallback to enable A20 using BIOS
+    int 0x15
+    
     lgdt [gdtr]                   ; Load GDT register with start address of GDT
 
     mov ax, 0
