@@ -3,31 +3,29 @@
 #include <math.h>
 #include <stdbool.h>
 
-static uint32_t *g_framebuffer;
-static uint32_t g_width;
-static uint32_t g_height;
-static uint32_t g_bpp;
-static uint32_t g_bpp_8;
-static uint32_t g_pitch;
+static GraphicsState g_graphics_state;
 
 #define MAX_HEIGHT 1080
 static uint32_t g_y_offsets[MAX_HEIGHT];
+static uint32_t bytes_per_pixel;
 
 static Point g_p;
 
 void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height,
-                   uint32_t bpp, uint32_t pitch) {
-  g_framebuffer = (uint32_t *)framebuffer;
-  g_width = width;
-  g_height = height;
-  g_bpp = bpp;
-  g_bpp_8 = g_bpp >> 3;
-  g_pitch = pitch;
+                   uint32_t bits_per_pixel, uint32_t pitch) {
+  g_graphics_state.framebuffer = (uint32_t *)(uintptr_t)framebuffer;
+  g_graphics_state.width = width;
+  g_graphics_state.height = height;
+  g_graphics_state.bits_per_pixel = bits_per_pixel;
+  bytes_per_pixel = g_graphics_state.bits_per_pixel >> 3;
+  g_graphics_state.pitch = pitch;
 
-  for (int y = 0; y < g_height; y++) {
-    g_y_offsets[y] = y * g_pitch;
+  for (int y = 0; y < g_graphics_state.height; y++) {
+    g_y_offsets[y] = y * g_graphics_state.pitch;
   }
 }
+
+const GraphicsState *get_graphics_state(void) { return &g_graphics_state; }
 
 Point rotate(Point center, Point p, int angle_deg) {
   int dx = p.x - center.x;
@@ -37,10 +35,12 @@ Point rotate(Point center, Point p, int angle_deg) {
 }
 
 void plot_pixel(Point p, Color color) {
-  if (p.x < 0 || p.x >= g_width || p.y < 0 || p.y >= g_height)
+  if (p.x < 0 || p.x >= g_graphics_state.width || p.y < 0 ||
+      p.y >= g_graphics_state.height)
     return;
 
-  uint8_t *fb = (uint8_t *)g_framebuffer + g_y_offsets[p.y] + p.x * g_bpp_8;
+  uint8_t *fb = (uint8_t *)g_graphics_state.framebuffer + g_y_offsets[p.y] +
+                p.x * bytes_per_pixel;
   fb[0] = color.b;
   fb[1] = color.g;
   fb[2] = color.r;
@@ -51,7 +51,7 @@ void put_text(char *text, Point top_left, Color color, unsigned int x_space,
   if (!text)
     return;
 
-  uint8_t *fb = (uint8_t *)g_framebuffer;
+  uint8_t *fb = (uint8_t *)g_graphics_state.framebuffer;
   bool is_global = top_left.x == -1 && top_left.y == -1;
 
   Point p = is_global ? g_p : top_left;
@@ -71,11 +71,11 @@ void put_text(char *text, Point top_left, Color color, unsigned int x_space,
       continue;
     }
 
-    if (p.x + 8 > g_width) {
+    if (p.x + 8 > g_graphics_state.width) {
       p.x = start_x;
       p.y += 8 + y_space;
     }
-    if (p.y + 8 > g_height)
+    if (p.y + 8 > g_graphics_state.height)
       break;
 
     if (c >= '!' && c <= '~') {
@@ -86,7 +86,8 @@ void put_text(char *text, Point top_left, Color color, unsigned int x_space,
         if (!row)
           continue;
 
-        uint32_t row_offset = (p.y + y) * g_pitch + p.x * g_bpp_8;
+        uint32_t row_offset =
+            (p.y + y) * g_graphics_state.pitch + p.x * bytes_per_pixel;
         uint8_t *pixel_ptr = fb + row_offset;
 
         for (int x = 0; x < 8; x++) {
@@ -95,7 +96,7 @@ void put_text(char *text, Point top_left, Color color, unsigned int x_space,
             pixel_ptr[1] = color.g;
             pixel_ptr[2] = color.r;
           }
-          pixel_ptr += g_bpp_8;
+          pixel_ptr += bytes_per_pixel;
           row >>= 1;
         }
       }
@@ -223,9 +224,10 @@ void ellipse(Point center, unsigned int rx, unsigned int ry, int rot_angle_deg,
 }
 
 void clear(Color color) {
-  for (int y = 0; y < g_height; y++) {
-    for (int x = 0; x < g_width; x++) {
-      uint8_t *fb = (uint8_t *)g_framebuffer + g_y_offsets[y] + x * g_bpp_8;
+  for (int y = 0; y < g_graphics_state.height; y++) {
+    for (int x = 0; x < g_graphics_state.width; x++) {
+      uint8_t *fb = (uint8_t *)g_graphics_state.framebuffer + g_y_offsets[y] +
+                    x * bytes_per_pixel;
       fb[0] = color.b;
       fb[1] = color.g;
       fb[2] = color.r;
