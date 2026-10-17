@@ -159,3 +159,6 @@ void itoa(int value, char *str) {
 }
 
 int abs(int x) { return x >= 0 ? x : -x; }
+int max(int x, int y) { return x >= y ? x : y; }
+int min(int x, int y) { return x < y ? x : y; }
+int clamp(int x, int low, int high) { return max(min(x, high), low); }

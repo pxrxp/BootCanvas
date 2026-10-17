@@ -14,6 +14,9 @@ void itoa(int value, char *str);
 void srand(unsigned int seed);
 int rand();
 int abs(int x);
+int max(int x, int y);
+int min(int x, int y);
+int clamp(int x, int low, int high);
 div_t div(int numerator, int denominator);
 void swap(uint8_t *a, uint8_t *b, size_t size);
 void *bsearch(const void *key, const void *base, size_t num, size_t size,
