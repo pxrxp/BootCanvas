@@ -23,4 +23,6 @@ static inline void outb(uint16_t port, uint8_t val) {
                      "Nd"(port)); // constant or dx
 }
 
+static inline void wait_for_interrupts(void) { __asm__ volatile("hlt"); }
+
 #endif

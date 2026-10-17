@@ -1,61 +1,54 @@
-#include "../arch/interrupts.h"
-#include "../arch/io.h"
-#include "scancode.h"
+#include "keyboard.h"
+#include "arch/interrupts.h"
+#include "arch/io.h"
 #include <stdbool.h>
 #include <stdint.h>
 
-static ScanCode last_scancode;
-static bool key_pressed;
-
-#define OUTPUT_BUFFER_FULL 0b00000001
-#define INPUT_BUFFER_FULL 0b00000010
-#define KEYBOARD_PASSED_SELF_TEST 0b00000100
-#define LAST_INPUT_WAS_A_COMMAND_NOT_DATA 0b00001000
-#define KEYBOARD_LOCKED 0b00010000
-#define MOUSE_DATA_NOT_KEYBOARD 0b00100000
-#define TIMEOUT 0b01000000
-#define PARITY_ERROR_WITH_LAST_BYTE 0b10000000
-
-// Same port to read and send command
-// Keyboard encoder is in the keyboard itself
-#define KEYBOARD_ENCODER_INPUT_BUFFER 0x60
-
-// Same port to read and send command
-// Keyboard controller is on the motherboard
-#define KEYBOARD_CONTROLLER_INPUT_BUFFER 0x64
+static KeyboardState g_keyboard_state = {.last_scancode = 0,
+                                         .key_pressed = false};
 
 uint8_t read_status_from_keyboard_controller() {
   return inb(KEYBOARD_CONTROLLER_INPUT_BUFFER);
 }
 
-void send_command_to_keyboard_controller(uint8_t command) {
-  while (read_status_from_keyboard_controller() & INPUT_BUFFER_FULL)
-    ;
+bool wait_for_input_buffer_to_clear(void) {
+  uint32_t timeout = 100000;
+  while (timeout--) {
+    if (!(read_status_from_keyboard_controller() & INPUT_BUFFER_FULL)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool wait_for_output_buffer_to_fill(void) {
+  uint32_t timeout = 100000;
+  while (timeout--) {
+    if (read_status_from_keyboard_controller() & OUTPUT_BUFFER_FULL) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool send_command_to_keyboard_controller(uint8_t command) {
+  if (!wait_for_input_buffer_to_clear())
+    return false;
   outb(KEYBOARD_CONTROLLER_INPUT_BUFFER, command);
+  return true;
 }
 
 uint8_t read_keyboard_encoder_input_buffer() {
   return inb(KEYBOARD_ENCODER_INPUT_BUFFER);
 }
 
-void send_command_to_keyboard_encoder(uint8_t command) {
-  while (read_status_from_keyboard_controller() & INPUT_BUFFER_FULL)
-    ; // Because keyboard controller is the one forwarding commands to keyboard
-      // encoder
+bool send_command_to_keyboard_encoder(uint8_t command) {
+  if (!wait_for_input_buffer_to_clear())
+    return false; // Because keyboard controller is the one forwarding commands
+                  // to keyboard encoder
   outb(KEYBOARD_ENCODER_INPUT_BUFFER, command);
+  return true;
 }
-
-// Keyboard encoder commands
-#define SET_LEDS 0xED
-
-// Keyboard controller commands
-#define ENABLE_KEYBOARD_CONTROLLER 0xAE
-#define DISABLE_KEYBOARD_CONTROLLER 0xAD
-#define SELF_TEST 0xAA
-
-#define SCROLL_LOCK 0b00000001
-#define NUMS_LOCK 0b00000010
-#define CAPS_LOCK 0b00000100
 
 void set_leds(bool scroll, bool nums, bool caps) {
   uint8_t command = 0;
@@ -77,41 +70,73 @@ void set_leds(bool scroll, bool nums, bool caps) {
   command |= (-((uint8_t)!!nums)) & NUMS_LOCK;
   command |= (-((uint8_t)!!caps)) & CAPS_LOCK;
 
-  send_command_to_keyboard_encoder(SET_LEDS);
-  send_command_to_keyboard_encoder(command);
+  if (!send_command_to_keyboard_encoder(SET_LEDS))
+    return;
+  if (!send_command_to_keyboard_encoder(command))
+    return;
 }
 
-bool self_test() {
-  send_command_to_keyboard_controller(SELF_TEST);
-  while (!(read_status_from_keyboard_controller() & OUTPUT_BUFFER_FULL))
-    ;
-  return read_keyboard_encoder_input_buffer() == 0x55;
+bool self_test_keyboard() {
+  if (!send_command_to_keyboard_controller(SELF_TEST))
+    return false;
+  return read_keyboard_data() == 0x55;
 }
 
-void enable() {
-  send_command_to_keyboard_controller(ENABLE_KEYBOARD_CONTROLLER);
+#define ENABLE_IRQ1 0b00000001
+void enable_keyboard(void) {
+  ps2_flush_output_buffer();
+
+  if (!send_command_to_keyboard_controller(ENABLE_KEYBOARD_PORT))
+    return;
+  if (!send_command_to_keyboard_controller(READ_CONTROLLER_CONFIGURATION_BYTE))
+    return;
+
+  uint8_t status = read_keyboard_data();
+
+  if (!send_command_to_keyboard_controller(WRITE_CONTROLLER_CONFIGURATION_BYTE))
+    return;
+  if (!send_command_to_keyboard_encoder(status | ENABLE_IRQ1))
+    return;
+  if (!send_command_to_keyboard_encoder(START_SCANNING_KEYPRESSES))
+    return;
+
+  if (read_keyboard_data() != PS2_ACKNOWLEDGEMENT)
+    return;
 }
 
-void disable() {
-  send_command_to_keyboard_controller(DISABLE_KEYBOARD_CONTROLLER);
+void disable_keyboard() {
+  send_command_to_keyboard_controller(DISABLE_KEYBOARD_PORT);
 }
 
 uint8_t read_keyboard_data(void) {
-  while (!(read_status_from_keyboard_controller() & OUTPUT_BUFFER_FULL))
-    ;
-  return inb(KEYBOARD_ENCODER_INPUT_BUFFER);
+  if (!wait_for_output_buffer_to_fill())
+    return 0;
+  return read_keyboard_encoder_input_buffer();
+}
+
+void ps2_flush_output_buffer(void) {
+  uint32_t timeout = 10000;
+  while ((inb(0x64) & 0x01) && timeout--) {
+    inb(0x60); // Read and discard
+  }
 }
 
 void keyboard_handler(void) {
   uint8_t scancode = read_keyboard_data();
 
-  if (last_scancode == 0xE0) {
-    last_scancode <<= 8;
-    last_scancode |= scancode;
+  if (g_keyboard_state.last_scancode == 0xE0) {
+    g_keyboard_state.last_scancode <<= 8;
+    g_keyboard_state.last_scancode |= scancode & ~0b10000000;
+    g_keyboard_state.key_pressed = !(scancode & 0b10000000);
+
+  } else if (scancode == 0xE0) {
+    g_keyboard_state.last_scancode = scancode;
   } else {
-    key_pressed = !(scancode & 0b10000000);
-    last_scancode = scancode;
+    g_keyboard_state.last_scancode = scancode & ~0b10000000;
+    g_keyboard_state.key_pressed = !(scancode & 0b10000000);
   }
-  
+
   end_of_interrupt(0x1);
 }
+
+const KeyboardState *get_keyboard_state() { return &g_keyboard_state; }

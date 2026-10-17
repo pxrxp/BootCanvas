@@ -19,10 +19,14 @@ idt_end:
 section .text
 global set_idt_gate
 global setup_interrupts
-extern irq1_keyboard_stub
-extern mouse_handler
 extern remap_pic
-extern init_mouse
+
+extern irq1_keyboard_stub
+extern irq12_mouse_stub
+
+extern enable_keyboard
+extern enable_mouse
+
 extern GDT_CODE_SEL
 
 PIC1_COMMAND equ 0x20            ; Master PIC command port
@@ -57,13 +61,14 @@ setup_interrupts:
     mov edx, 0x21                ; IRQ1 (keyboard) -> vector 0x21
     call set_idt_gate
 
-    mov eax, mouse_handler
+    mov eax, irq12_mouse_stub
     mov edx, 0x2C                ; IRQ12 (mouse) -> vector 0x2C
     call set_idt_gate
 
     lidt [idtr]                  ; Load IDT address and limit into the CPU
 
-    call init_mouse
+    call enable_keyboard
+    call enable_mouse
 
     mov al, 0xF9                 ; 11111001: 0=allow, 1=block.
     out PIC1_DATA, al            ; Bits 1-2 are 0: allow IRQ1, IRQ2.
