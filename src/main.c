@@ -12,7 +12,7 @@ extern void setup_interrupts(void);
 void kmain(uint32_t framebuffer, uint32_t width, uint32_t height, uint32_t bpp,
            uint32_t pitch) {
   init_graphics(framebuffer, width, height, bpp, pitch);
-  init_console((Point){0, 0});
+  init_console();
   setup_interrupts();
 
   init_program();

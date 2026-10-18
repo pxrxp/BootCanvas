@@ -16,10 +16,10 @@ typedef enum {
   KEY_8 = 0x09,
   KEY_9 = 0x0A,
   KEY_0 = 0x0B,
-  KEY_MINUS = 0x0C, // -
-  KEY_EQUAL = 0x0D, // =
+  KEY_MINUS = 0x0C,     // -
+  KEY_EQUAL = 0x0D,     // =
   KEY_BACKSPACE = 0x0E, // \b
-  KEY_TAB = 0x0F, // \t
+  KEY_TAB = 0x0F,       // \t
   KEY_Q = 0x10,
   KEY_W = 0x11,
   KEY_E = 0x12,
@@ -108,27 +108,31 @@ typedef enum {
   KEY_DELETE = 0xE053,
   KEY_LEFT_GUI = 0xE05B,
   KEY_RIGHT_GUI = 0xE05C,
-  KEY_APPS = 0xE05D,
-
-  // Multi-byte sequence scan codes
-  // KEY_PAUSE = 0xE11D45,
-  // KEY_PRNT_SCRN = 0xE02AE037
+  KEY_APPS = 0xE05D
 } ScanCode;
 
-static const char scancode_to_ascii[0x53 + 1] = {
-    0,    0,    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-',  '=',
-    '\b', '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[',  ']',
-    '\n', 0,    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
-    0,    '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,    '*',
-    0,    ' ',  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
-    0,    '7',  '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0',  '.'};
+static const char scancode_ascii_unshifted[128] = {
+    0,   27,  '1',  '2',  '3',  '4', '5', '6',  '7', '8', '9', '0',
+    '-', '=', '\b', '\t', 'q',  'w', 'e', 'r',  't', 'y', 'u', 'i',
+    'o', 'p', '[',  ']',  '\n', 0,   'a', 's',  'd', 'f', 'g', 'h',
+    'j', 'k', 'l',  ';',  '\'', '`', 0,   '\\', 'z', 'x', 'c', 'v',
+    'b', 'n', 'm',  ',',  '.',  '/', 0,   '*',  0,   ' '};
+
+static const char scancode_ascii_shifted[128] = {
+    0,   27,  '!',  '@',  '#',  '\$', '%', '^', '&', '*', '(', ')',
+    '_', '+', '\b', '\t', 'Q',  'W',  'E', 'R', 'T', 'Y', 'U', 'I',
+    'O', 'P', '{',  '}',  '\n', 0,    'A', 'S', 'D', 'F', 'G', 'H',
+    'J', 'K', 'L',  ':',  '"',  '~',  0,   '|', 'Z', 'X', 'C', 'V',
+    'B', 'N', 'M',  '<',  '>',  '?',  0,   '*', 0,   ' '};
+
+char scancode_to_ascii(ScanCode scancode);
 
 static inline bool is_extended_key(ScanCode scancode) {
   return scancode & 0xE000;
 }
 
 static inline bool is_ascii_key(ScanCode scancode) {
-  return scancode <= 0x53 && scancode_to_ascii[scancode];
+  return scancode < 128 && scancode_ascii_unshifted[scancode] != 0;
 }
 
 #endif
