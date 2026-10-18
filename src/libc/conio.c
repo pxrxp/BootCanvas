@@ -8,12 +8,11 @@
 
 static ConsoleState g_console_state;
 
-void init_console(Point top_left) {
+void init_console() {
   g_console_state.current_col = 0;
   g_console_state.current_row = 0;
   g_console_state.current_background_color = (Color){0, 0, 0};
   g_console_state.current_foreground_color = (Color){255, 255, 255};
-  g_console_state.top_left = (Point){0, 0};
 
   recalculate_dimensions();
 
@@ -25,66 +24,78 @@ bool kbhit() { return get_keyboard_state()->key_pressed; }
 int8_t getch() {
   ScanCode last_scancode = get_keyboard_state()->last_scancode;
   if (is_ascii_key(last_scancode)) {
-    return scancode_to_ascii[last_scancode];
+    return scancode_to_ascii(last_scancode);
   }
   return -1;
 }
 
 int8_t getche(void) {
-  char c = getch();
+  int8_t c = getch();
   if (c != -1)
     putch(c);
   return c;
 }
 
 void fix_console_state(void) {
-    if (g_console_state.current_col >= g_console_state.max_cols) {
-        g_console_state.current_col = 0;
-        g_console_state.current_row++;
-    }
+  if (g_console_state.current_col >= g_console_state.max_cols) {
+    g_console_state.current_col = 0;
+    g_console_state.current_row++;
+  }
 
-    if (g_console_state.current_row >= g_console_state.max_rows) {
-        g_console_state.current_row = g_console_state.max_rows - 1;
-    }
+  if (g_console_state.current_row >= g_console_state.max_rows) {
+    g_console_state.current_row = g_console_state.max_rows - 1;
+  }
 }
 
 void putch(char c) {
-    if (c == '\n') {
-        g_console_state.current_col = 0;
-        g_console_state.current_row++;
-        fix_console_state();
-        return;
-    }
-
-    if (c == '\r') {
-        g_console_state.current_col = 0;
-        return;
-    }
-
-    if (c == '\b') {
-        if (g_console_state.current_col > 0) {
-            g_console_state.current_col--;
-            g_console_state.cells[g_console_state.current_row][g_console_state.current_col] = 
-                (Cell){' ', g_console_state.current_foreground_color, g_console_state.current_background_color};
-        }
-        return;
-    }
-
+  if (c == '\n') {
+    g_console_state.current_col = 0;
+    g_console_state.current_row++;
     fix_console_state();
+    return;
+  }
 
-    g_console_state.cells[g_console_state.current_row][g_console_state.current_col] =
-        (Cell){c, g_console_state.current_foreground_color, g_console_state.current_background_color};
+  if (c == '\r') {
+    g_console_state.current_col = 0;
+    return;
+  }
 
-    g_console_state.current_col++;
+  if (c == '\b') {
+    if (g_console_state.current_col > 0) {
+      g_console_state.current_col--;
+      g_console_state
+          .cells[g_console_state.current_row][g_console_state.current_col] =
+          (Cell){.ascii_character = ' ',
+                 .foreground = g_console_state.current_foreground_color,
+                 .background = g_console_state.current_background_color};
+    }
+    return;
+  }
 
-    fix_console_state();
+  fix_console_state();
+
+  g_console_state
+      .cells[g_console_state.current_row][g_console_state.current_col] =
+      (Cell){.ascii_character = c,
+             .foreground = g_console_state.current_foreground_color,
+             .background = g_console_state.current_background_color};
+
+  g_console_state.current_col++;
+
+  fix_console_state();
 }
 
 char *cgets(char *s) {
   char *str = s;
-  char input;
-  while ((input = getch()) != '\n') {
-    *str++ = input;
+  int8_t input;
+  while (1) {
+    input = getch();
+    if (input == '\n') {
+      break;
+    }
+    if (input != -1) {
+      *str++ = input;
+    }
   }
   *str = '\0';
   return s;
@@ -93,6 +104,18 @@ char *cgets(char *s) {
 void cputs(const char *s) {
   while (*s) {
     putch(*s);
+  }
+}
+
+void clrscr() {
+  g_console_state.current_col = 0;
+  g_console_state.current_row = 0;
+  for (int r = 0; r < g_console_state.max_rows; r++) {
+    for (int c = 0; c < g_console_state.max_cols; c++) {
+      g_console_state.cells[r][c] =
+          (Cell){0, g_console_state.current_foreground_color,
+                 g_console_state.current_background_color};
+    }
   }
 }
 

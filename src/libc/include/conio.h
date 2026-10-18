@@ -30,7 +30,7 @@ typedef struct {
   Cell cells[CONSOLE_COLS][CONSOLE_ROWS + 1];
 } ConsoleState;
 
-void init_console(Point top_left);
+void init_console();
 
 bool kbhit(void);
 int8_t getch(void);
@@ -38,6 +38,7 @@ int8_t getche(void);
 void putch(char c);
 char *cgets(char *s);
 void cputs(const char *s);
+void clrscr(void);
 
 void set_background_color(Color c);
 void set_foreground_color(Color c);
