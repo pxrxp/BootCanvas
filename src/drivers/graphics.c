@@ -46,72 +46,67 @@ void plot_pixel(Point p, Color color) {
   fb[2] = color.r;
 }
 
-void put_text(char *text, Point top_left, Color color, unsigned int x_space,
+void put_char(char c, Point *p, int start_x, Color color, unsigned int x_space,
               unsigned int y_space) {
-  if (!text)
+  if (!p)
     return;
 
   uint8_t *fb = (uint8_t *)g_graphics_state.framebuffer;
-  bool is_global = top_left.x == -1 && top_left.y == -1;
 
-  Point p = is_global ? g_p : top_left;
-  int start_x = p.x;
+  if (c == '\n') {
+    p->x = start_x;
+    p->y += 8 + y_space;
+    return;
+  }
 
-  while (*text) {
-    char c = *text++;
+  if (c == '\t') {
+    p->x += (8 + x_space) * 4;
+    return;
+  }
 
-    if (c == '\n') {
-      p.x = start_x;
-      p.y += 8 + y_space;
-      continue;
-    }
+  if (p->x + 8 > g_graphics_state.width) {
+    p->x = start_x;
+    p->y += 8 + y_space;
+  }
+  if (p->y + 8 > g_graphics_state.height)
+    return;
 
-    if (c == '\t') {
-      p.x += (8 + x_space) * 4;
-      continue;
-    }
+  if (c >= '!' && c <= '~') {
+    const uint8_t *glyph = font_map[c - '!'];
 
-    if (p.x + 8 > g_graphics_state.width) {
-      p.x = start_x;
-      p.y += 8 + y_space;
-    }
-    if (p.y + 8 > g_graphics_state.height)
-      break;
+    for (int y = 0; y < 8; y++) {
+      uint8_t row = glyph[y];
+      if (!row)
+        continue;
 
-    if (c >= '!' && c <= '~') {
-      const uint8_t *glyph = font_map[c - '!'];
+      uint32_t row_offset =
+          (p->y + y) * g_graphics_state.pitch + p->x * bytes_per_pixel;
+      uint8_t *pixel_ptr = fb + row_offset;
 
-      for (int y = 0; y < 8; y++) {
-        uint8_t row = glyph[y];
-        if (!row)
-          continue;
-
-        uint32_t row_offset =
-            (p.y + y) * g_graphics_state.pitch + p.x * bytes_per_pixel;
-        uint8_t *pixel_ptr = fb + row_offset;
-
-        for (int x = 0; x < 8; x++) {
-          if (row & 1) {
-            pixel_ptr[0] = color.b;
-            pixel_ptr[1] = color.g;
-            pixel_ptr[2] = color.r;
-          }
-          pixel_ptr += bytes_per_pixel;
-          row >>= 1;
+      for (int x = 0; x < 8; x++) {
+        if (row & 1) {
+          pixel_ptr[0] = color.b;
+          pixel_ptr[1] = color.g;
+          pixel_ptr[2] = color.r;
         }
+        pixel_ptr += bytes_per_pixel;
+        row >>= 1;
       }
     }
-
-    p.x += 8 + x_space;
   }
 
-  if (is_global) {
-    g_p = p;
-  }
+  p->x += 8 + x_space;
 }
 
-void print(char *text) {
-  put_text(text, (Point){-1, -1}, (Color){255, 255, 255}, 0, 3);
+void put_text(const char *text, Point top_left, Color color,
+              unsigned int x_space, unsigned int y_space) {
+  if (!text)
+    return;
+
+  Point p = top_left;
+  while (*text) {
+    put_char(*text++, &p, top_left.x, color, x_space, y_space);
+  }
 }
 
 void rectangle(Point top_left, Point bottom_right, int rot_angle_deg,
