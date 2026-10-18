@@ -5,11 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-static MouseState g_mouse_state = {.x = 0,
-                                   .y = 0,
-                                   .left_button = false,
-                                   .middle_button = false,
-                                   .right_button = false};
+static MouseState g_mouse_state;
 
 static uint8_t g_mouse_cycle = 0;
 static uint8_t g_mouse_packet[3];
@@ -29,6 +25,12 @@ static uint8_t g_mouse_packet[3];
 #define ENABLE_IRQ12 0b00000010
 #define DISABLE_MOUSE_CLOCK 0b00100000
 void enable_mouse(void) {
+  g_mouse_state.x = 0;
+  g_mouse_state.y = 0;
+  g_mouse_state.left_button = false;
+  g_mouse_state.middle_button = false;
+  g_mouse_state.right_button = false;
+
   ps2_flush_output_buffer();
 
   if (!send_command_to_keyboard_controller(ENABLE_MOUSE_PORT))

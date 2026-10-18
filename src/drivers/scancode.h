@@ -1,6 +1,8 @@
 #ifndef SCANCODE_H
 #define SCANCODE_H
 
+#include <stdbool.h>
+
 typedef enum {
   // Single-byte scan codes
   KEY_ESC = 0x01,
@@ -16,8 +18,8 @@ typedef enum {
   KEY_0 = 0x0B,
   KEY_MINUS = 0x0C, // -
   KEY_EQUAL = 0x0D, // =
-  KEY_BACKSPACE = 0x0E,
-  KEY_TAB = 0x0F,
+  KEY_BACKSPACE = 0x0E, // \b
+  KEY_TAB = 0x0F, // \t
   KEY_Q = 0x10,
   KEY_W = 0x11,
   KEY_E = 0x12,
@@ -89,8 +91,6 @@ typedef enum {
   KEY_F11 = 0x57,
   KEY_F12 = 0x58,
 
-  KEY_INCOMPLETE = 0xE0,
-
   // Extended scan codes (0xE0 Prefix)
   KEY_KP_ENTER = 0xE01C, // Keypad EN
   KEY_RIGHT_CTRL = 0xE01D,
@@ -115,12 +115,20 @@ typedef enum {
   // KEY_PRNT_SCRN = 0xE02AE037
 } ScanCode;
 
-static const char keycode_to_ascii[0x53 + 1] = {
+static const char scancode_to_ascii[0x53 + 1] = {
     0,    0,    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-',  '=',
     '\b', '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[',  ']',
     '\n', 0,    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
     0,    '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,    '*',
     0,    ' ',  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,
     0,    '7',  '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0',  '.'};
+
+static inline bool is_extended_key(ScanCode scancode) {
+  return scancode & 0xE000;
+}
+
+static inline bool is_ascii_key(ScanCode scancode) {
+  return scancode <= 0x53 && scancode_to_ascii[scancode];
+}
 
 #endif

@@ -2,6 +2,8 @@
 #define FONT_H
 
 #include <stdint.h>
+#define CHARACTER_WIDTH 8
+#define CHARACTER_HEIGHT 8
 
 static uint8_t font_map[94][8] = {
     { 0x18, 0x3C, 0x3C, 0x18, 0x18, 0x00, 0x18, 0x00},   // U+0021 (!)

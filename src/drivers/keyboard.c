@@ -4,8 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-static KeyboardState g_keyboard_state = {.last_scancode = 0,
-                                         .key_pressed = false};
+static KeyboardState g_keyboard_state;
 
 uint8_t read_status_from_keyboard_controller() {
   return inb(KEYBOARD_CONTROLLER_INPUT_BUFFER);
@@ -84,6 +83,9 @@ bool self_test_keyboard() {
 
 #define ENABLE_IRQ1 0b00000001
 void enable_keyboard(void) {
+  g_keyboard_state.key_pressed = false;
+  g_keyboard_state.last_scancode = '\0';
+
   ps2_flush_output_buffer();
 
   if (!send_command_to_keyboard_controller(ENABLE_KEYBOARD_PORT))

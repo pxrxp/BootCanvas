@@ -54,9 +54,9 @@ bool wait_for_output_buffer_to_fill(void);
 #define CAPS_LOCK 0b00000100
 
 void set_leds(bool scroll, bool nums, bool caps);
-bool self_test_keyboard();
-void enable_keyboard();
-void disable_keyboard();
+bool self_test_keyboard(void);
+void enable_keyboard(void);
+void disable_keyboard(void);
 uint8_t read_keyboard_data(void);
 
 void ps2_flush_output_buffer(void);

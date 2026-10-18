@@ -46,10 +46,13 @@ void plot_pixel(Point p, Color color) {
   fb[2] = color.r;
 }
 
-void put_char(char c, Point *p, int start_x, Color color, unsigned int x_space,
-              unsigned int y_space) {
+void put_char(char c, Point *p, int start_x, Color foreground, Color background,
+              unsigned int x_space, unsigned int y_space) {
   if (!p)
     return;
+
+  filled_rectangle(*p, (Point){p->x + CHARACTER_WIDTH, p->y + CHARACTER_HEIGHT},
+                   background);
 
   uint8_t *fb = (uint8_t *)g_graphics_state.framebuffer;
 
@@ -85,9 +88,9 @@ void put_char(char c, Point *p, int start_x, Color color, unsigned int x_space,
 
       for (int x = 0; x < 8; x++) {
         if (row & 1) {
-          pixel_ptr[0] = color.b;
-          pixel_ptr[1] = color.g;
-          pixel_ptr[2] = color.r;
+          pixel_ptr[0] = foreground.b;
+          pixel_ptr[1] = foreground.g;
+          pixel_ptr[2] = foreground.r;
         }
         pixel_ptr += bytes_per_pixel;
         row >>= 1;
@@ -98,14 +101,14 @@ void put_char(char c, Point *p, int start_x, Color color, unsigned int x_space,
   p->x += 8 + x_space;
 }
 
-void put_text(const char *text, Point top_left, Color color,
-              unsigned int x_space, unsigned int y_space) {
+void put_text(const char *text, Point top_left, Color foreground,
+              Color background, unsigned int x_space, unsigned int y_space) {
   if (!text)
     return;
 
   Point p = top_left;
   while (*text) {
-    put_char(*text++, &p, top_left.x, color, x_space, y_space);
+    put_char(*text++, &p, top_left.x, foreground, background, x_space, y_space);
   }
 }
 
@@ -119,6 +122,21 @@ void rectangle(Point top_left, Point bottom_right, int rot_angle_deg,
   line(top_left, bottom_left, stroke_color);
   line(bottom_left, bottom_right, stroke_color);
   line(bottom_right, top_right, stroke_color);
+}
+
+void filled_rectangle(Point top_left, Point bottom_right, Color color) {
+  uint8_t *fb = (uint8_t *)g_graphics_state.framebuffer;
+  uint32_t pitch = g_graphics_state.pitch;
+
+  for (uint32_t y = top_left.y; y < bottom_right.y; y++) {
+    uint8_t *row = fb + (y * pitch) + (top_left.x * bytes_per_pixel);
+    for (uint32_t x = top_left.x; x < bottom_right.x; x++) {
+      row[0] = color.b;
+      row[1] = color.g;
+      row[2] = color.r;
+      row += bytes_per_pixel;
+    }
+  }
 }
 
 void line(Point p0, Point p1, Color stroke_color) {
