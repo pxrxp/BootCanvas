@@ -67,11 +67,11 @@ void put_char(char c, Point *p, int start_x, Color foreground, Color background,
     return;
   }
 
-  if (p->x + 8 > g_graphics_state.width) {
+  if (p->x + CHARACTER_WIDTH > g_graphics_state.width) {
     p->x = start_x;
     p->y += 8 + y_space;
   }
-  if (p->y + 8 > g_graphics_state.height)
+  if (p->y + CHARACTER_HEIGHT > g_graphics_state.height)
     return;
 
   if (c >= '!' && c <= '~') {
@@ -98,7 +98,7 @@ void put_char(char c, Point *p, int start_x, Color foreground, Color background,
     }
   }
 
-  p->x += 8 + x_space;
+  p->x += CHARACTER_WIDTH + x_space;
 }
 
 void put_text(const char *text, Point top_left, Color foreground,

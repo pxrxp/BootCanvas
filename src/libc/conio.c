@@ -68,6 +68,7 @@ void putch(char c) {
           (Cell){.ascii_character = ' ',
                  .foreground = g_console_state.current_foreground_color,
                  .background = g_console_state.current_background_color};
+      render_console();
     }
     return;
   }
@@ -81,6 +82,7 @@ void putch(char c) {
              .background = g_console_state.current_background_color};
 
   g_console_state.current_col++;
+  render_console();
 
   fix_console_state();
 }
@@ -150,12 +152,8 @@ void render_console(void) {
 
     for (int c = 0; c < g_console_state.max_cols; c++) {
       Cell cell = g_console_state.cells[r][c];
-      if (cell.ascii_character != 0) {
-        put_char(cell.ascii_character, &p, g_console_state.top_left.x,
-                 cell.foreground, cell.background, 0, 0);
-      } else {
-        p.x += CHARACTER_WIDTH;
-      }
+      put_char(cell.ascii_character, &p, g_console_state.top_left.x,
+               cell.foreground, cell.background, 0, 0);
     }
   }
 }

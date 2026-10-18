@@ -1,6 +1,5 @@
 #include "programs/console.h"
 #include "conio.h"
-#include "drivers/graphics.h"
 #include "programs/mouse.h"
 
 void CONSOLE_run(bool keyboard_changed, bool mouse_changed) {
@@ -8,8 +7,7 @@ void CONSOLE_run(bool keyboard_changed, bool mouse_changed) {
     getche();
   }
 
-  if (kbhit() || mouse_changed) {
-    clear(get_console_state()->current_background_color);
+  if (mouse_changed) {
     render_console();
     MOUSE_run();
   }
