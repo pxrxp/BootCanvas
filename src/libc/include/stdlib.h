@@ -12,7 +12,7 @@ typedef struct {
 int atoi(const char *str);
 void itoa(int value, char *str);
 void srand(unsigned int seed);
-int rand();
+int rand(void);
 int abs(int x);
 int max(int x, int y);
 int min(int x, int y);
