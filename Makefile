@@ -20,7 +20,7 @@ OS_IMG     = $(BUILD_DIR)/os.img
 
 BOOT_SRC   = $(SRC_DIR)/boot.asm
 
-.PHONY: all clean run
+.PHONY: all clean run compile_commands.json
 
 all: $(OS_IMG)
 
@@ -74,3 +74,7 @@ run: $(OS_IMG)
 clean:
 	@echo "--- Cleaning build files ---"
 	rm -rf $(BUILD_DIR)
+
+compile_commands.json:
+	@which compiledb > /dev/null 2>&1 || (echo "Install compiledb with: pip install compiledb" && exit 1)
+	compiledb --output $@ make -B $(KERNEL_ELF)
