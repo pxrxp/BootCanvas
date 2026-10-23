@@ -65,6 +65,7 @@ bool is_ctrl_pressed(void);
 bool is_alt_pressed(void);
 
 void ps2_flush_output_buffer(void);
+void consume_keyboard_event(void);
 void keyboard_handler(void);
 
 const KeyboardState *get_keyboard_state(void);

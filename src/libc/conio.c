@@ -21,12 +21,21 @@ void init_console() {
 
 bool kbhit() { return get_keyboard_state()->key_pressed; }
 
-int8_t getch() {
-  ScanCode last_scancode = get_keyboard_state()->last_scancode;
-  if (is_ascii_key(last_scancode)) {
-    return scancode_to_ascii(last_scancode);
+int8_t getch(void) {
+  const KeyboardState *state = get_keyboard_state();
+  if (!state->key_pressed) {
+    return -1;
   }
-  return -1;
+
+  ScanCode last_scancode = state->last_scancode;
+  int8_t c = -1;
+
+  if (is_ascii_key(last_scancode)) {
+    c = scancode_to_ascii(last_scancode);
+  }
+
+  consume_keyboard_event();
+  return c;
 }
 
 int8_t getche(void) {

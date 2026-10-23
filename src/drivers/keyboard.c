@@ -131,8 +131,18 @@ void ps2_flush_output_buffer(void) {
   }
 }
 
+void consume_keyboard_event(void) {
+  g_keyboard_state.key_pressed = false;
+  g_keyboard_state.last_scancode = 0;
+}
+
 void keyboard_handler(void) {
   uint8_t scancode = read_keyboard_data();
+
+  if (read_status_from_keyboard_controller() & MOUSE_DATA_NOT_KEYBOARD) {
+    end_of_interrupt(0x1);
+    return;
+  }
 
   if (g_keyboard_state.last_scancode == 0xE0) {
     g_keyboard_state.last_scancode <<= 8;
