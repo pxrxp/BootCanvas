@@ -8,6 +8,7 @@
 typedef struct {
   ScanCode last_scancode;
   bool key_pressed;
+  bool event_toggle; // Toggles on every keyboard IRQ
 } KeyboardState;
 
 #define OUTPUT_BUFFER_FULL 0b00000001

@@ -30,8 +30,7 @@ void run_program() {
   mouse_state = get_mouse_state();
 
   bool keyboard_changed =
-      (keyboard_state->key_pressed != last_keyboard_state.key_pressed ||
-       keyboard_state->last_scancode != last_keyboard_state.last_scancode);
+      (keyboard_state->event_toggle != last_keyboard_state.event_toggle);
 
   bool mouse_changed =
       (mouse_state->x != last_mouse_state.x ||

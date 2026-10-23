@@ -166,6 +166,8 @@ void keyboard_handler(void) {
       g_caps = !g_caps;
   }
 
+  g_keyboard_state.event_toggle = !g_keyboard_state.event_toggle;
+
   end_of_interrupt(0x1);
 }
 
