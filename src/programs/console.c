@@ -4,7 +4,6 @@
 #include "ctype.h"
 #include "drivers/graphics.h"
 #include "programs/calc_gui.h"
-#include "programs/mouse.h"
 #include "programs/paint_gui.h"
 #include "stdlib.h"
 #include "string.h"
@@ -106,6 +105,11 @@ static void execute_command(const char *cmd_line) {
     cputs("Unknown command: ");
     cputs(cmd_line);
     cputs("\nType 'help' for available commands.\n");
+  }
+
+  if (g_console_initialized && strcmp(cmd_line, CMD_CLEAR) != 0 &&
+      strcmp(cmd_line, CMD_CLS) != 0) {
+    cputs("\n");
   }
 }
 
