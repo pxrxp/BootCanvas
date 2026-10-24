@@ -1,6 +1,7 @@
 #include "programs/calc_gui.h"
 #include "arch/program.h"
 #include "conio.h"
+#include "drivers/font.h"
 #include "drivers/graphics.h"
 #include "drivers/mouse.h"
 #include "gui/gui.h"
