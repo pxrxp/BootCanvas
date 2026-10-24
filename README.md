@@ -27,7 +27,7 @@ BootCanvas combines several low-level pieces into a functioning bootable kernel 
 - A calculator GUI program
 - A minimal custom libc subset for kernel code
 
-BootCanvas focuses on the kernel and basic graphics rather than a general-purpose desktop environment.
+BootCanvas focuses on the kernel rather than a general-purpose desktop environment.
 
 ## System architecture
 
@@ -429,7 +429,7 @@ The system currently provides:
 - raw kernel boot
 - protected mode CPU startup
 - direct hardware access
-- custom framebuffer graphics
+- framebuffer graphics
 - keyboard and mouse drivers
 - a small command shell
 - simple GUI programs
@@ -444,8 +444,6 @@ It does not currently provide:
 - a true user-space process model
 - a robust kernel API
 - a fully general-purpose desktop environment
-
-BootCanvas is a small bare-metal graphics environment, not a complete general-purpose operating system.
 
 ## License
 
