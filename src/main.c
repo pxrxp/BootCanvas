@@ -2,6 +2,7 @@
 #include "arch/program.h"
 #include "drivers/graphics.h"
 #include "programs/console.h"
+#include "programs/mouse.h"
 #include "stdlib.h"
 #include <conio.h>
 #include <stdbool.h>
@@ -20,6 +21,9 @@ void kmain(uint32_t framebuffer, uint32_t width, uint32_t height, uint32_t bpp,
 
   while (1) {
     wait_for_interrupts();
+    MOUSE_restore_bg();
     run_program();
+    MOUSE_run();
+    swap_buffers();
   }
 }

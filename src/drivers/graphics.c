@@ -11,9 +11,13 @@ static uint32_t bytes_per_pixel;
 
 static Point g_p;
 
+static uint8_t *g_vram_target = 0;
+static uint8_t *backbuffer_storage = (uint8_t *)0x00200000;
+
 void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height,
                    uint32_t bits_per_pixel, uint32_t pitch) {
-  g_graphics_state.framebuffer = (uint32_t *)(uintptr_t)framebuffer;
+  g_vram_target = (uint8_t *)(uintptr_t)framebuffer;
+  g_graphics_state.framebuffer = (uint32_t *)(uintptr_t)backbuffer_storage;
   g_graphics_state.width = width;
   g_graphics_state.height = height;
   g_graphics_state.bits_per_pixel = bits_per_pixel;
@@ -25,6 +29,20 @@ void init_graphics(uint32_t framebuffer, uint32_t width, uint32_t height,
   }
 }
 
+void swap_buffers(void) {
+  if (!g_vram_target || !g_graphics_state.framebuffer)
+    return;
+
+  uint32_t total_bytes = g_graphics_state.height * g_graphics_state.pitch;
+  uint32_t *dst = (uint32_t *)g_vram_target;
+  uint32_t *src = (uint32_t *)g_graphics_state.framebuffer;
+  uint32_t count = total_bytes >> 2;
+
+  for (uint32_t i = 0; i < count; i++) {
+    dst[i] = src[i];
+  }
+}
+
 const GraphicsState *get_graphics_state(void) { return &g_graphics_state; }
 
 Point rotate(Point center, Point p, int angle_deg) {
@@ -32,6 +50,16 @@ Point rotate(Point center, Point p, int angle_deg) {
   int dy = p.y - center.y;
   return (Point){center.x + (dx * cos(angle_deg) - dy * sin(angle_deg)),
                  center.y + (dx * sin(angle_deg) + dy * cos(angle_deg))};
+}
+
+Color get_pixel(Point p) {
+  if (p.x < 0 || p.x >= (int)g_graphics_state.width || p.y < 0 ||
+      p.y >= (int)g_graphics_state.height)
+    return (Color){0, 0, 0};
+
+  uint8_t *fb = (uint8_t *)g_graphics_state.framebuffer + g_y_offsets[p.y] +
+                p.x * bytes_per_pixel;
+  return (Color){fb[2], fb[1], fb[0]};
 }
 
 void plot_pixel(Point p, Color color) {
