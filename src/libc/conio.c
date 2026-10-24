@@ -114,7 +114,7 @@ char *cgets(char *s) {
 
 void cputs(const char *s) {
   while (*s) {
-    putch(*s);
+    putch(*s++);
   }
 }
 
