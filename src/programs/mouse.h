@@ -5,5 +5,6 @@
 
 void MOUSE_run(void);
 void MOUSE_set_cursor_color(Color c);
+void MOUSE_restore_bg(void);
 
 #endif

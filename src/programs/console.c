@@ -143,8 +143,7 @@ void CONSOLE_run(bool keyboard_changed, bool mouse_changed) {
     }
   }
 
-  if (mouse_changed) {
+  if (mouse_changed || keyboard_changed) {
     render_console();
-    MOUSE_run();
   }
 }
