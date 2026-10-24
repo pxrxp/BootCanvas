@@ -12,7 +12,7 @@ SECTIONS
     *kernel.o(.text)
     *(.text)
   }
-  .rodata : { *(.rodata) }
+  .rodata : { *(.rodata*) }
   .data : { *(.data) }
   .bss : { *(.bss COMMON) }
 }

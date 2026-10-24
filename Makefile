@@ -8,7 +8,7 @@ SRC_DIR   = src
 
 GCC_INTERNAL_INC := $(shell $(GCC) -m32 -print-file-name=include)
 
-CFLAGS    = -m32 -ffreestanding -fno-pic -fno-stack-protector -nostdinc \
+CFLAGS    = -m32 -ffreestanding -fno-pic -fno-stack-protector -fno-asynchronous-unwind-tables -nostdinc \
             -I $(SRC_DIR) -I $(SRC_DIR)/libc/include -I $(GCC_INTERNAL_INC) -O0 -g
 LDFLAGS   = -m elf_i386 -T linker.ld
 
