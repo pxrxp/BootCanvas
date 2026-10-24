@@ -46,7 +46,6 @@ static void init_button_grid(void) {
     Color bg_h = {80, 80, 95};
     Color bg_p = {40, 40, 50};
 
-    // Operator colors
     if (c == 3 || strcmp(g_btn_labels[i], "C") == 0 ||
         strcmp(g_btn_labels[i], "=") == 0) {
       bg = (Color){180, 90, 30};
@@ -68,10 +67,17 @@ static void update_calc_display(void) {
   filled_rectangle(disp_tl, disp_br, (Color){10, 20, 10});
   rectangle(disp_tl, disp_br, 0, (Color){80, 120, 80});
 
+  // Visual feedback: display active operator in top-left
+  if (g_pending_op != '\0') {
+    char op_str[2] = {g_pending_op, '\0'};
+    put_text(op_str, (Point){disp_tl.x + 10, disp_tl.y + 12},
+             (Color){255, 200, 50}, (Color){10, 20, 10}, 0, 0);
+  }
+
   size_t len = strlen(g_display_buf);
   int text_x = disp_br.x - (int)len * CHARACTER_WIDTH - 12;
-  if (text_x < disp_tl.x + 8)
-    text_x = disp_tl.x + 8;
+  if (text_x < disp_tl.x + 30)
+    text_x = disp_tl.x + 30;
 
   put_text(g_display_buf, (Point){text_x, disp_tl.y + 12}, (Color){50, 255, 50},
            (Color){10, 20, 10}, 0, 0);
@@ -137,22 +143,22 @@ static void handle_calc_input(const char *label) {
 
 void CALC_GUI_init(void) {
   clrscr();
-  ui_draw_window_frame("GUI Calculator", g_win_tl, g_win_br);
   init_button_grid();
-  update_calc_display();
   g_calc_initialized = true;
 }
 
 void CALC_GUI_run(bool keyboard_changed, bool mouse_changed) {
   if (!g_calc_initialized) {
     CALC_GUI_init();
+    keyboard_changed = true;
   }
 
   if (keyboard_changed && kbhit()) {
     int8_t c = getch();
-    if (c == 27) { // ESC exits back to OS Console
+    if (c == 27) { // ESC key returns to Console
       g_calc_initialized = false;
       clrscr();
+      init_console();
       set_current_program((Program){NULL, CONSOLE_run});
       return;
     }
@@ -161,19 +167,30 @@ void CALC_GUI_run(bool keyboard_changed, bool mouse_changed) {
   const MouseState *mouse = get_mouse_state();
   Point mouse_p = {mouse->x, mouse->y};
   bool mouse_pressed = mouse->left_button;
-  bool mouse_released = g_last_mouse_left && !mouse_pressed;
 
-  // Render Calculator UI
-  ui_draw_window_frame("GUI Calculator", g_win_tl, g_win_br);
-  update_calc_display();
+  // Reliable click detection on mouse-down transition
+  bool mouse_clicked = mouse_pressed && !g_last_mouse_left;
 
-  for (int i = 0; i < TOTAL_BUTTONS; i++) {
-    ui_draw_button(&g_calc_buttons[i], mouse_p, mouse_pressed);
+  if (keyboard_changed || mouse_changed) {
+    ui_draw_window_frame("GUI Calculator", g_win_tl, g_win_br);
+    update_calc_display();
 
-    if (ui_button_clicked(&g_calc_buttons[i], mouse_p, mouse_released)) {
-      handle_calc_input(g_calc_buttons[i].label);
+    for (int i = 0; i < TOTAL_BUTTONS; i++) {
+      ui_draw_button(&g_calc_buttons[i], mouse_p, mouse_pressed);
+
+      if (mouse_clicked) {
+        if (mouse_p.x >= g_calc_buttons[i].top_left.x &&
+            mouse_p.x <= g_calc_buttons[i].bottom_right.x &&
+            mouse_p.y >= g_calc_buttons[i].top_left.y &&
+            mouse_p.y <= g_calc_buttons[i].bottom_right.y) {
+
+          handle_calc_input(g_calc_buttons[i].label);
+        }
+      }
+    }
+
+    if (mouse_changed) {
+      g_last_mouse_left = mouse_pressed;
     }
   }
-
-  g_last_mouse_left = mouse_pressed;
 }
