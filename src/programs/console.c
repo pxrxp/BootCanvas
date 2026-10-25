@@ -21,7 +21,6 @@
 #define CMD_ABOUT "about"
 
 #define CMD_PAINT "paint"
-#define CMD_MSPAINT "mspaint"
 #define CMD_DRAW "draw"
 
 #define CMD_CALC "calc"
@@ -69,15 +68,15 @@ static void execute_command(const char *cmd_line) {
     cputs("  clear / cls         - Clear screen\n");
     cputs("  echo <text>         - Print string to terminal\n");
     cputs("  about               - System & resolution specs\n");
-    cputs("  paint / mspaint     - Launch MSPaint GUI program\n");
-    cputs("  calc / calculator   - Launch Calculator GUI program\n");
+    cputs("  paint / draw        - Launch Paint program\n");
+    cputs("  calc / calculator   - Launch Calculator program\n");
   }
   // Command: about
   else if (strcmp(cmd_line, CMD_ABOUT) == 0) {
     const GraphicsState *gfx = get_graphics_state();
     char num_buf[16];
 
-    cputs("OS Kernel Console v1.0\n");
+    cputs("BootCanvas Console v1.0\n");
     cputs("Resolution: ");
     itoa((int)gfx->width, num_buf);
     cputs(num_buf);
@@ -89,14 +88,13 @@ static void execute_command(const char *cmd_line) {
     cputs(num_buf);
     cputs(" bpp\n");
   }
-  // Command: paint / mspaint / draw -> Launch Paint GUI
+  // Command: paint / draw -> Launch Paint
   else if (strcmp(cmd_line, CMD_PAINT) == 0 ||
-           strcmp(cmd_line, CMD_MSPAINT) == 0 ||
            strcmp(cmd_line, CMD_DRAW) == 0) {
     g_console_initialized = false;
     set_current_program((Program){PAINT_init, PAINT_run});
   }
-  // Command: calc / calculator -> Launch Calculator GUI
+  // Command: calc / calculator -> Launch Calculator
   else if (strcmp(cmd_line, CMD_CALC) == 0 ||
            strcmp(cmd_line, CMD_CALCULATOR) == 0) {
     g_console_initialized = false;

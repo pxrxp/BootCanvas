@@ -6,7 +6,7 @@ BootCanvas is a bare-metal x86 operating system kernel built from scratch in C a
 
 This project is not a general-purpose Linux-like OS. It is a compact kernel-focused environment designed to explore low-level bootstrapping, protected mode setup, interrupt handling, graphics primitives, and user-interface code running directly on hardware.
 
-https://github.com/user-attachments/assets/8fcefb10-15dc-4f6d-bc67-beb24554ef5f
+https://github.com/user-attachments/assets/66eeacd7-2af7-490e-8749-0f70b5db0224
 
 This is a screen recording of BootCanvas running on QEMU, a free and open-source machine emulator.
 
@@ -23,8 +23,7 @@ BootCanvas combines several low-level pieces into a functioning bootable kernel 
 - VESA framebuffer graphics
 - 2D drawing primitives: pixels, lines, rectangles, ellipses, text
 - Console shell with commands
-- Windowed GUI programs, including a paint-style app
-- A calculator GUI program
+- Windowed GUI programs, including a paint-style app and a calculator GUI program
 - A minimal custom libc subset for kernel code
 
 BootCanvas focuses on the kernel rather than a general-purpose desktop environment.
@@ -82,7 +81,7 @@ BootCanvas/
 │   │   ├── console.h
 │   │   ├── paint_gui.c        # paint-like drawing app
 │   │   ├── paint_gui.h
-│   │   ├── calc_gui.c         # calculator GUI app
+│   │   ├── calc_gui.c         # calculator app
 │   │   ├── calc_gui.h
 │   │   ├── mouse.c             # mouse-related program utilities
 │   │   └── mouse.h
@@ -269,11 +268,8 @@ The shell supports commands such as:
 - `clear` / `cls`
 - `echo <text>`
 - `about`
-- `paint`
-- `mspaint`
-- `draw`
-- `calc`
-- `calculator`
+- `paint` / `draw`
+- `calc` / `calculator`
 
 The console is implemented in `src/programs/console.c` and uses a custom kernel console I/O layer.
 

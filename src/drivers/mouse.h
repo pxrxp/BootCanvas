@@ -1,7 +1,8 @@
 #ifndef MOUSE_H
 #define MOUSE_H
 
-#include "keyboard.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 typedef struct {
   int32_t x;

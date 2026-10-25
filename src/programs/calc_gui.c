@@ -172,7 +172,7 @@ void CALC_GUI_run(bool keyboard_changed, bool mouse_changed) {
   bool mouse_clicked = mouse_pressed && !g_last_mouse_left;
 
   if (keyboard_changed || mouse_changed) {
-    ui_draw_window_frame("GUI Calculator", g_win_tl, g_win_br);
+    ui_draw_window_frame("Calculator", g_win_tl, g_win_br);
     update_calc_display();
 
     for (int i = 0; i < TOTAL_BUTTONS; i++) {
