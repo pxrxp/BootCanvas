@@ -258,7 +258,7 @@ This allows the kernel to switch between a shell and GUI programs without any re
 
 ## Console shell
 
-<img width="566" height="190" alt="image" src="https://github.com/user-attachments/assets/da394d20-f40c-4753-a7ac-e73d828daa16" />
+<img width="352" height="130" alt="image" src="https://github.com/user-attachments/assets/4c37a1e2-4b15-4fb3-84d4-908f845dd5ad" />
 
 The console is the first active program launched after the kernel initializes.
 
