@@ -284,7 +284,7 @@ The shell is a minimal command environment, not a full TTY or Unix shell.
 
 ## Paint program
 
-<img width="703" height="534" alt="image" src="https://github.com/user-attachments/assets/f647f89d-a9b7-4259-9182-0cc0a990cb7e" />
+<img width="711" height="538" alt="image" src="https://github.com/user-attachments/assets/d490652c-cbb5-4984-908f-e7eb6347a2a4" />
 
 The paint-style program is implemented in `src/programs/paint_gui.c`.
 
@@ -319,7 +319,7 @@ The paint program uses these helpers to draw its panels, window frame, and butto
 
 ## Calculator program
 
-<img width="326" height="383" alt="image" src="https://github.com/user-attachments/assets/f6bfde98-7d6a-4b51-9e23-67c91ba92723" />
+<img width="321" height="384" alt="image" src="https://github.com/user-attachments/assets/f0c6bac0-4d7a-4d5c-8611-296b8f646d85" />
 
 A calculator GUI program exists in:
 
